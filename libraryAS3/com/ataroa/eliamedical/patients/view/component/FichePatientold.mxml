@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="750" height="400" backgroundAlpha="0.0" horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:ns1="com.ataroa.remoteFile.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import com.ataroa.eliamedical.patients.model.vo.PatientVO;
+			
+			[Bindable] private var dataProvider:PatientVO = null;
+			
+			
+			public function get patient():PatientVO{
+				
+				return this.dataProvider;
+			}
+			
+			public function set patient(patient:PatientVO):void{
+				
+				
+				this.dataProvider = patient;
+				
+			}
+			
+			
+			
+			
+		]]>
+	</mx:Script>
+	
+	<mx:HBox left="0" right="0" height="100%">
+	<mx:Form x="0" y="0" width="50%">
+		<mx:Label text="{(this.dataProvider.civilite)?this.dataProvider.civilite:''} {this.dataProvider.nom} {this.dataProvider.prenom}" id="champNom" fontWeight="bold"/>
+		<mx:HRule height="1" width="100%"/>
+		<mx:FormItem label="Né le :" fontWeight="normal" color="#838383" width="100%">
+			<mx:Label text="{this.dataProvider.naissance}" width="100%" color="#2D2D2D"/>
+		</mx:FormItem>
+		<mx:FormItem label="Adresse :" color="#838383" width="100%">
+			<mx:Label text="{this.dataProvider.adresse}" width="100%" color="#2D2D2D"/>
+			<mx:Label text="{this.dataProvider.code_postal}" width="100%" color="#2D2D2D"/>
+			<mx:Label text="{this.dataProvider.ville}" width="100%" color="#2D2D2D"/>
+		</mx:FormItem>
+		<mx:FormItem label="Téléphone :" color="#838383" width="100%">
+			<mx:Label text="{this.dataProvider.telephone}" width="100%" color="#2D2D2D"/>
+		</mx:FormItem>
+		<mx:FormItem label="Prescription :" fontWeight="normal" color="#838383" width="100%">
+			<mx:Label text="{(this.dataProvider.visites.length > 0)? this.dataProvider.visites[0].prescription : this.dataProvider.oldPrescription.ppc}" width="100%" color="#2D2D2D"/>
+		</mx:FormItem>
+		<mx:FormItem label="Installation :" color="#838383" width="100%">
+			<mx:Label text="{this.dataProvider.dateInstallation}" width="100%" color="#2D2D2D"/>
+		</mx:FormItem>
+		<mx:FormItem label="Fin DEP" color="#838383" width="100%">
+			<mx:Label text="{this.dataProvider.dateFinDEP}" width="100%" color="#2D2D2D"/>
+		</mx:FormItem>
+		<mx:FormItem label="prochaine visite :" color="#838383" width="100%">
+			<mx:Label text="{this.dataProvider.dateProchaineVisite}" width="100%" color="#2D2D2D"/>
+		</mx:FormItem>
+		<mx:Label text="Alerte : " height="20" fontWeight="bold" color="#B60408" visible="{(this.dataProvider.alerte != '')?true:false}"/>
+		<mx:Label text="{this.dataProvider.alerte}"/>
+	</mx:Form>
+	<mx:Form width="50%" height="100%">
+		<mx:Label text="Visites" id="champNom0" fontWeight="bold"/>
+		<mx:HRule height="1" width="100%"/>
+		<mx:HBox width="100%" height="100%">
+			<mx:List id="listeVisites" selectedIndex="0" height="100%" width="81" alpha="1.0" dataProvider="{this.dataProvider.visites}" labelField="dateVisite" enabled="true" backgroundColor="#D2D2D2" borderStyle="none">
+			</mx:List>
+			<mx:ViewStack id="viewstack1" width="100%" height="100%">
+				<mx:Form label="View 1" width="100%" height="100%">
+					<mx:FormItem label="Type :" width="100%" color="#838383">
+						<mx:Label text="{this.listeVisites.selectedItem.typeVisite}" width="100%" color="#2D2D2D"/>
+					</mx:FormItem>
+					<mx:FormItem label="Prescription :" width="100%" color="#838383">
+						<mx:Label text="{this.listeVisites.selectedItem.prescription}" width="100%" color="#2D2D2D"/>
+					</mx:FormItem>
+					<mx:FormItem label="Détails :" width="100%" color="#838383">
+						<mx:Label text="{(this.dataProvider.haveVisites)?this.listeVisites.selectedItem.details:'aucun détails'}" width="100%" color="#2D2D2D"/>
+					</mx:FormItem>
+					<mx:FormItem label="Appareil :" width="100%" color="#838383">
+						<mx:Label text="{(this.dataProvider.haveVisites)?this.listeVisites.selectedItem.appareil:this.patient.oldPrescription.appareil}" width="100%" color="#2D2D2D"/>
+					</mx:FormItem>
+					<mx:FormItem label="Masque :" width="100%" color="#838383">
+						<mx:Label text="{(this.dataProvider.haveVisites)?this.listeVisites.selectedItem.masque:this.patient.oldPrescription.masque}" width="100%" color="#2D2D2D"/>
+					</mx:FormItem>
+					<mx:FormItem label="IAH résiduel :" width="100%" color="#838383">
+						<mx:Label text="{(this.dataProvider.haveVisites)?this.listeVisites.selectedItem.IAHResiduel:'-'}" width="100%" color="#2D2D2D"/>
+					</mx:FormItem>
+					<mx:FormItem label="Util Moy :" width="100%" color="#838383">
+						<mx:Label text="{(this.dataProvider.haveVisites)?this.listeVisites.selectedItem.utilisationMoyenne:this.patient.oldPrescription.utilisation_moyenne}" width="100%" color="#2D2D2D"/>
+					</mx:FormItem>
+					<mx:FormItem label="EPWORTH :" width="100%" color="#838383">
+						<mx:Label text="{(this.dataProvider.haveVisites)?this.listeVisites.selectedItem.epworth:this.patient.oldPrescription.epworth}" width="100%" color="#2D2D2D"/>
+					</mx:FormItem>
+					<mx:FormItem label="Oxymetrie :" width="100%" color="#838383">
+						<mx:Label text="{(this.dataProvider.haveVisites)?this.listeVisites.selectedItem.oxymetrie:this.patient.oldPrescription.oxymetrie}" width="100%" color="#2D2D2D"/>
+					</mx:FormItem>
+					<mx:Text text="{this.listeVisites.selectedItem.commentaire}" width="100%" height="64"/>
+					<mx:HBox width="100%" horizontalAlign="right">
+						<mx:Label text="Obs"/>
+						<ns1:downlodableFileIcone width="20" height="20" source="@Embed(source='../assets/img/document.gif')" visible="{(this.listeVisites.selectedItem.observance)?true:false}" url="{this.listeVisites.selectedItem.observance_url}"/>
+						<mx:Label text="Oxy nocturne"/>
+						<ns1:downlodableFileIcone width="20" height="20" source="@Embed(source='../assets/img/document.gif')" visible="{(this.listeVisites.selectedItem.oxymetrieNocturne)?true:false}" url="{this.listeVisites.selectedItem.oxymetrieNocturne_url}"/>
+					</mx:HBox>
+				</mx:Form>
+			</mx:ViewStack>
+		</mx:HBox>
+	</mx:Form>
+
+	</mx:HBox>
+	
+</mx:Canvas>

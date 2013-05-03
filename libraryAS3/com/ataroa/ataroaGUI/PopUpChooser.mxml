@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" width="200" horizontalGap="0" creationComplete="init()" creationPolicy="all">
+
+<mx:Script>
+	<![CDATA[
+		import com.ataroa.events.AtaroaEvent;
+		import mx.events.ChildExistenceChangedEvent;
+		import mx.collections.ArrayCollection;
+		
+		import mx.core.UIComponent;
+		import mx.managers.PopUpManager;
+		import com.ataroa.ataroaGUI.SelectorWindow;
+		
+		private var _windowSelector:SelectorWindow; 
+		
+		[Bindable] private var _selectedItem:Object = null;
+		[Bindable] private var _text:String = "";
+		
+		
+		public function get text():String{
+			
+			return this._text;
+		}
+		
+		public function set text(s:String):void{
+			
+			this._text = s;
+			
+		}
+		
+		public function get selectedItem():Object{
+			
+			trace( this._selectedItem);
+			return this._selectedItem;
+		}
+		
+		public function set selectedItem(obj:Object):void{
+			
+			this._selectedItem = obj;
+			this._text = obj.nom;
+			
+		}
+				
+		private function init():void{
+			
+			this._windowSelector = new SelectorWindow();
+			this.bt.addEventListener(MouseEvent.CLICK, onBtClick);
+			this._windowSelector.addEventListener('close', onClose);
+			this._windowSelector.addEventListener('itemSelected', onItemSelected);	
+			
+		}
+		
+		private function onItemSelected(e:AtaroaEvent):void{
+			
+			this.closeWidowSeletor();
+			var item:Object = e.data;
+			this._text = item.nom;
+			this._selectedItem = item;
+		}
+		
+		
+		public function resetDataProvider():void{
+			
+			this._windowSelector.liste1 = new ArrayCollection();
+			this._windowSelector.liste2 = new ArrayCollection();
+			this._windowSelector.currentState = 'loading';
+			
+			
+		}
+		
+		public function setDataProvider( marques:ArrayCollection, appareils:ArrayCollection):void{
+			
+			this._windowSelector.liste1 = marques;
+			this._windowSelector.liste2 = appareils;
+			this._windowSelector.currentState = '';
+			
+		}
+		
+		
+		public function set marques( a:ArrayCollection ):void{
+			
+			this._windowSelector.liste1 = a;
+			
+		}
+		
+		public function get marques():ArrayCollection{
+			
+			return this._windowSelector.liste1;
+		}
+		
+		
+		public function set appareils( a:ArrayCollection ):void{
+			
+			
+			this._windowSelector.liste2 = a;
+			
+		}
+		
+		public function get appareils():ArrayCollection{
+			
+			return this._windowSelector.liste2;
+		}
+		
+		
+			
+		public  function get windowSelector():SelectorWindow{
+			
+			return this._windowSelector;
+			
+		}
+		
+		private function onBtClick( e:Event = null):void{
+			
+			PopUpManager.addPopUp(this._windowSelector,UIComponent(this.parentApplication),true);
+			PopUpManager.centerPopUp(this._windowSelector);
+			this.dispatchEvent( new Event('open') );
+			
+			
+		}
+		
+		private function onClose(event:Event = null):void{
+			
+			this.closeWidowSeletor();
+			
+		}
+		
+		private function closeWidowSeletor():void{
+			
+			PopUpManager.removePopUp(this._windowSelector);
+			this.dispatchEvent( new Event('close') );
+			
+		}
+		
+	]]>
+</mx:Script>
+
+	<mx:TextInput width="100%" enabled="true" editable="false" id="input" text="{this._text}" fontWeight="normal" textAlign="center"/>
+	<mx:Button id="bt" label="..." height="100%" fontWeight="normal" width="20" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"/>
+	
+</mx:HBox>
+

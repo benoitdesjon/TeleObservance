@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="250" verticalGap="0" borderStyle="solid" borderColor="#464646" maxHeight="300">
+	<mx:states>
+		<mx:State name="loading">
+			<mx:RemoveChild target="{combobox1}"/>
+			<mx:RemoveChild target="{hbox3}"/>
+			<mx:AddChild relativeTo="{hbox4}" position="before">
+				<mx:HBox width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" horizontalGap="0">
+					<mx:SWFLoader source="@Embed(source='loading1.swf')" autoLoad="true" alpha="1.0"/>
+				</mx:HBox>
+			</mx:AddChild>
+			<mx:SetProperty target="{hbox4}" name="height" value="100%"/>
+		</mx:State>
+	</mx:states>
+	<mx:HBox width="100%" backgroundColor="#E4E4E4" paddingTop="2" paddingRight="2" paddingLeft="10" paddingBottom="2" id="hbox2" horizontalGap="0">
+		<mx:Label text="Titre" id="label1" width="100%"/>
+		<mx:Button label="x" height="16" fontWeight="normal" width="16" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" id="button0" enabled="false"/>
+	</mx:HBox>
+	<mx:ComboBox width="100%" prompt="Selectionner une marque ..." cornerRadius="0" fontWeight="normal" color="#656565" id="combobox1"></mx:ComboBox>
+	<mx:HBox width="100%" horizontalAlign="left" verticalAlign="middle" horizontalGap="0" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10" id="hbox3">
+		<mx:Label text="Nom : "/>
+		<mx:TextInput width="100%" enabled="false"/>
+	</mx:HBox>
+	<mx:HBox width="100%" backgroundColor="#E4E4E4" verticalAlign="middle" horizontalAlign="right" paddingTop="4" paddingRight="10" paddingLeft="10" paddingBottom="4" id="hbox4">
+		<mx:Button label="Annuler" fontWeight="normal" cornerRadius="0" paddingLeft="2" paddingRight="2" paddingTop="2" paddingBottom="2" enabled="true"/>
+		<mx:Button label="Valider" fontWeight="normal" cornerRadius="0" paddingLeft="2" paddingRight="2" paddingTop="2" paddingBottom="2" enabled="false"/>
+	</mx:HBox>
+	
+</mx:VBox>

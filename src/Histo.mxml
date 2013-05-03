@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- charts/SimpleFillFunction.mxml -->
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+				width="100%"
+				height="100%"	
+				implements="com.ataroa.eliamedical.IModuleTeleObsInterface"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				>
+	<mx:Script>
+		<![CDATA[
+			import com.ataroa.eliamedical.IModuleTeleObsInterface;
+			
+			import mx.charts.ChartItem;
+			import mx.charts.series.items.ColumnSeriesItem;
+			import mx.graphics.IFill;
+			import mx.graphics.SolidColor;
+			
+			import ben.HistoData;
+			
+			public var dataBarChart:HistoData = new HistoData();
+			
+			//gestion du num téléobservance
+			private var _numeroTeleObs:String = '';
+			public function setNumTeleObs( n:String = ''):void{				
+				this._numeroTeleObs = n;	
+			}
+			
+			//gestion de l'histogramme
+			private function myFillFunction(element:ChartItem, index:Number):IFill {
+				var c:SolidColor = new SolidColor(0x00CC00);
+				
+				var item:ColumnSeriesItem = ColumnSeriesItem(element);
+				var sales:Number = Number(item.yValue); 
+				
+				if (sales >= 5.0) {
+					return c;
+				} else if (sales <= 1) {
+					// They have not met their goal.
+					c.color = 0xCC0000;
+				}else{
+					c.color = 0xFF6600;
+				}
+				return c;
+			}
+			
+			//gestion de l'export xml
+			import com.as3xls.xls.ExcelFile;
+			import com.as3xls.xls.Sheet;
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				var sheet:Sheet = new Sheet;
+				sheet.resize(dataBarChart.sales.length+1, 2);
+				sheet.setCell(0, 0, 'Day');
+				sheet.setCell(0, 1, 'DailyUse');
+				for(var i:int=0; i<dataBarChart.sales.length; i++){
+					sheet.setCell(i+1, 0, dataBarChart.sales[i].Day);
+					sheet.setCell(i+1, 1, dataBarChart.sales[i].DailyUse);
+				}
+				
+				var xls:ExcelFile = new ExcelFile;
+				xls.sheets.addItem(sheet);
+				var bytes:ByteArray = xls.saveToByteArray();
+				
+				var fileRef:FileReference = new FileReference;
+				fileRef.save(bytes, 'books.xls');
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Label x="0" y="0" 
+			  text="Téléobservance { this._numeroTeleObs }" fontWeight="bold"/>
+	
+	<mx:Panel title="Using a custom fillFunction in a Column Chart">
+		<mx:ColumnChart id="myChart" 
+						dataProvider="{dataBarChart.sales}" 
+						showDataTips="true"
+						>
+			<mx:horizontalAxis>
+				<mx:CategoryAxis 
+					title="Daily Observance"
+					categoryField="Day"
+					/>
+			</mx:horizontalAxis>
+			<mx:verticalAxis>
+				<mx:LinearAxis title="Dayli use(hrs)"/>
+			</mx:verticalAxis>
+			
+			<mx:series>
+				<mx:ColumnSeries id="currSalesSeries" 
+								 xField="Day" 
+								 yField="DailyUse" 
+								 fillFunction="myFillFunction" 
+								 displayName="Current Sales"
+								 />
+			</mx:series>
+		</mx:ColumnChart>
+		<mx:Legend>
+			<mx:LegendItem label="More than 5hrs" fontWeight="bold">
+				<mx:fill>
+					<mx:SolidColor color="0x00CC00"/>
+				</mx:fill>
+				<mx:stroke>
+					<mx:Stroke color="0x000000" weight="1"/>
+				</mx:stroke>
+			</mx:LegendItem>
+			<mx:LegendItem label="between 1 and 5hrs" fontWeight="bold">
+				<mx:fill>
+					<mx:SolidColor color="0xFF6600"/>
+				</mx:fill>
+				<mx:stroke>
+					<mx:Stroke color="0x000000" weight="1"/>
+				</mx:stroke>
+			</mx:LegendItem>
+			<mx:LegendItem label="Less than 1hr" fontWeight="bold">
+				<mx:fill>
+					<mx:SolidColor color="0xCC0000"/>
+				</mx:fill>
+				<mx:stroke>
+					<mx:Stroke color="0x000000" weight="1"/>
+				</mx:stroke>
+			</mx:LegendItem>
+		</mx:Legend>
+	</mx:Panel>
+	
+	<mx:DataGrid height="127" width="329" dataProvider="{dataBarChart.sales}">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Day" dataField="Day"/>
+			<mx:DataGridColumn headerText="Daily Use" dataField="DailyUse"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:Button label="Save as XLS"
+			   click="button1_clickHandler(event)"/>
+	
+</mx:Application>

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns="com.ataroa.eliamedical.patients.view.component.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" creationComplete="init()" verticalScrollPolicy="off" horizontalScrollPolicy="off" backgroundColor="#FFFFFF" xmlns:formatters="com.ataroa.formatters.*" creationPolicy="all" currentState="listeVisites">
+	<mx:states>
+		<mx:State name="listeVisites">
+			<mx:AddChild position="lastChild" creationPolicy="all">
+				<mx:HBox x="0" y="0" width="100%" height="31" creationPolicy="all" verticalAlign="middle" horizontalGap="4">
+					<mx:Button label="Ajouter une visite" id="bt_addVisite" click="displayFormNew()" visible="{(ApplicationFacade.modeUser == ApplicationFacade.MODE_MEDECIN || ApplicationFacade.modeUser == ApplicationFacade.MODE_SECRETAIRE) ? false : true}"/>
+					<mx:Spacer width="87" height="100%"/>
+					<mx:Spacer width="100%" height="100%"/>
+				</mx:HBox>
+			</mx:AddChild>
+			<mx:SetProperty name="height"/>
+			<mx:SetProperty name="creationPolicy" value="all"/>
+			<mx:AddChild position="lastChild" creationPolicy="all">
+				<mx:HBox x="0" y="39" width="100%" height="100%" horizontalGap="0" horizontalAlign="center" verticalAlign="top" creationPolicy="all">
+					<mx:VBox width="100%" height="100%" verticalAlign="top" horizontalAlign="left" paddingTop="10">
+						<mx:Button id="bt_nextVisites" click="displayNextVisites()" width="30" height="30" toolTip="Visites suivantes">
+							<mx:skin>@Embed(source='icones/bouton-gauche-actif.png')</mx:skin>
+							<mx:disabledSkin>@Embed(source='icones/bouton-gauche-inactif.png')</mx:disabledSkin>
+							<mx:overSkin>@Embed(source='icones/bouton-gauche-survol.png')</mx:overSkin>
+						</mx:Button>
+					</mx:VBox>
+					<mx:VBox width="124" height="100%" backgroundColor="#D8D8D8" backgroundAlpha="0.0" paddingTop="2" verticalGap="6" borderStyle="none" borderColor="#C1C1C1">
+						<mx:TextInput backgroundColor="#E4E4E4" text="Date" width="100%" fontSize="12" textAlign="right" editable="false"  fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Type" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Lieu de prescription" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Prescription" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Appareil" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Masque" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Réglage" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="IAH Résiduel" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="P efficace" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Utilisation moy." width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Fuite" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Epworth" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="SpO2" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Observance" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Oxymetrie nocturne" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+						<mx:TextInput backgroundColor="#E4E4E4"  text="Commentaire" width="100%" fontSize="12" textAlign="right" fontFamily="Arial" fontWeight="bold"/>
+					</mx:VBox>
+					<mx:ViewStack id="viewstack" borderStyle="none" borderColor="#C1C1C1" borderThickness="1" width="800" height="520"></mx:ViewStack>
+					<mx:VBox width="100%" horizontalAlign="right" verticalAlign="top" paddingTop="10">
+						<mx:Button id="bt_previousVisites" click="displayPreviousVisites()" width="30" height="30" toolTip="Visites précédentes">
+							<mx:disabledSkin>@Embed(source='icones/bouton-droit-inactif.png')</mx:disabledSkin>
+							<mx:skin>@Embed(source='icones/bouton-droit-actif.png')</mx:skin>
+							<mx:overSkin>@Embed(source='icones/bouton-droit-survol.png')</mx:overSkin>
+						</mx:Button>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:AddChild>
+		</mx:State>
+		
+		<mx:State name="form_newVisite">
+			<mx:AddChild position="lastChild" creationPolicy="all">
+				<NewVisiteForm x="0" y="0" id="newVisiteForm" patient="{this.patient}" creationPolicy="all">
+				</NewVisiteForm>
+			</mx:AddChild>
+		</mx:State>
+		<mx:State name="alert_noVisite">
+			<mx:AddChild position="lastChild" creationPolicy="all">
+				<mx:Label x="10" y="125" text="Aucune visites n'est renseignée pour ce patient." color="#E21B1B"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:HBox x="0" y="0" width="100%" height="31" creationPolicy="all" verticalAlign="middle" horizontalGap="4">
+					<mx:Label text="Visites" fontSize="14" fontWeight="bold" styleName="title"/>
+					<mx:Button label="Ajouter une visite" id="bt_addVisite0" click="displayFormNew()" visible="{(ApplicationFacade.connectedUser.id_profil == 3) ? false : true}"/>
+				</mx:HBox>
+			</mx:AddChild>
+		</mx:State>
+		<mx:State name="installation" basedOn="form_newVisite">
+			<mx:SetProperty target="{newVisiteForm}" name="currentState" value="installation"/>
+		</mx:State>
+	</mx:states>
+	
+	<formatters:DateMysql id="mysqlToFrenchFormatter" sens="{DateMysql.MYSQL_TO_FRENCH}" separateur="/" />
+	
+	<mx:Script>
+		<![CDATA[
+			import com.ataroa.events.AtaroaEvent;
+			import com.ataroa.eliamedical.patients.model.vo.PatientVO;
+			import com.ataroa.eliamedical.patients.model.PatientProxy;
+			import elia.ApplicationFacade;
+			import mx.containers.HBox;
+			import com.ataroa.eliamedical.patients.model.vo.VisiteVO;
+			import mx.controls.Alert;
+			import mx.collections.ArrayCollection;
+			
+			public static const STATE_NEW_VISITE_FORM:String = "form_newVisite"
+			public static const STATE_INSTALLATION_FORM:String = "installation"
+			public static const STATE_LISTE_VISITE:String = "listeVisites"
+			public static const STATE_ALERT_NOVISITE:String = "alert_noVisite"
+			
+			private var _listeVisites:ArrayCollection = new ArrayCollection();
+			private var _listeFiches:Array = new Array();
+			private var _listeSlides:Array = new Array();
+			
+			[Bindable] public var patient:PatientVO;
+			public var mode:String = "admin";
+				
+			private function init():void{
+				
+				this.newVisiteForm.addEventListener(NewVisiteForm.EVENT_CANCEL_NEW_VISITE, onCancelNewVisite);
+				
+			
+				
+			}
+			
+			
+			
+			public function get listeVisite():ArrayCollection{
+				
+				return this._listeVisites;
+			}
+			
+			public function set listeVisite(a:ArrayCollection):void{
+				
+				
+				this.newVisiteForm.resetForm();
+				
+				if( a.length > 0){
+					
+					var ch:String = ""
+					this._listeVisites = a;
+				
+				
+					if(this.viewstack) this.viewstack.removeAllChildren();
+					this._listeFiches = new Array();
+					this._listeSlides = new Array();
+				
+					var fiche:FicheVisite;
+					var compteur:int = 1;
+					var currentSlide:int = 0;
+					
+					for each(var v:VisiteVO in a){
+						
+						
+						if(v.active != "0" || ApplicationFacade.connectedUser.id_profil != "3"){
+							if(compteur == 1){
+								
+								ch += "- nouveau slide÷\n";
+								
+								this._listeSlides[currentSlide] = new HBox();
+								this._listeSlides[currentSlide].creationPolicy = "all";
+								this._listeSlides[currentSlide].verticalScrollPolicy = this._listeSlides[currentSlide].horizontalScrollPolicy = "off";
+								this._listeSlides[currentSlide].width = 800;
+								this._listeSlides[currentSlide].setStyle("gap",0);
+								
+								
+							}
+							
+							ch += "---- nouvelle fiche "+ v.dateVisite +"\n"
+							fiche = new FicheVisite();
+							fiche.visite = v;
+							fiche.currentState = "editable";
+							fiche.mode = (ApplicationFacade.connectedUser.id_profil == 3 ) ? "medecin" : "admin";
+							
+							this._listeSlides[currentSlide].addChild( fiche );
+							compteur++;
+							
+							if(compteur > 4) {
+								
+								compteur = 1;
+								currentSlide++;
+							}
+						
+						} 
+						
+					
+					}
+					
+					for each (var c:HBox in this._listeSlides){
+						
+						ch += "nb fiche in slide  : " +  c.numChildren + "\n";
+						
+						this.viewstack.addChild( c );
+						
+					}
+					
+					this.currentState = STATE_LISTE_VISITE;
+					
+				}else{
+					
+					this.newVisiteForm.resetForm();
+					var d:Array = main.fichePatient.champ_installation.text.split("/");
+					this.newVisiteForm.dateInstall = new Date( d[2], d[1] -1 , d[0]);
+					
+					this.currentState = STATE_INSTALLATION_FORM;
+				
+				}	
+				
+				setButtonState();
+				
+				
+			}
+			
+			
+			private function displayNextVisites():void{
+				
+				this.viewstack.selectedIndex --;
+				setButtonState();
+			}
+			
+			
+			private function displayPreviousVisites():void{
+				
+				this.viewstack.selectedIndex ++;
+				setButtonState();
+			}
+			
+			private function setButtonState():void{
+				
+				if(this._listeSlides.length == 0) { this.bt_nextVisites.enabled = this.bt_previousVisites.enabled = false; }
+				
+				this.bt_nextVisites.enabled = (this.viewstack.selectedIndex == 0)? false:true;
+				this.bt_previousVisites.enabled = (this.viewstack.selectedIndex < this._listeSlides.length-1)? true : false;
+				
+			}
+			
+			private function displayFormNew():void{
+				
+				this.newVisiteForm.resetForm();
+				this.currentState = STATE_NEW_VISITE_FORM;
+				
+				if(this._listeSlides.length > 0){
+					
+					this.newVisiteForm.champTypeVisite.selectedIndex = 2;
+					this.newVisiteForm.champTypeVisite.text = this.newVisiteForm.champTypeVisite.selectedItem.toString();
+					var d:Date = new Date();
+					this.newVisiteForm.champDateVisite.text = d.getDate() + "/" + String(d.getMonth() +1) +"/" + d.getFullYear();
+					this.newVisiteForm.champDateVisite.selectedDate = new Date();
+					this.newVisiteForm.champDetails.text = VisiteVO(this._listeVisites[0]).details;
+					this.newVisiteForm.champAppareils.dataProvider = VisiteVO(this._listeVisites[0]).appareils;
+					this.newVisiteForm.champMasque.text = VisiteVO(this._listeVisites[0]).masque;
+					this.newVisiteForm.champPrescription.text = VisiteVO(this._listeVisites[0]).prescription;
+					this.newVisiteForm.champLieuPrescription.text = VisiteVO(this._listeVisites[0]).lieuPrescription;
+					var a:Array = (this.newVisiteForm.champPrescription.text != '') ? this.newVisiteForm.champPrescription.text.split(" + ") : new Array();
+					
+					try {
+  							
+  						this.newVisiteForm.list_prescription.selectedItems = a;
+ 					}  
+  					catch(error:Error)
+  					{
+  						this.newVisiteForm.list_prescription.selectedItems = new Array();	
+  					}
+					
+					
+				}else{
+					
+					this.newVisiteForm.champTypeVisite.text = "Installation";
+					this.newVisiteForm.champDateVisite.text = this.mysqlToFrenchFormatter.format(this.patient.dateInstallation);
+				}
+				
+			}
+			
+			private function onCancelNewVisite(e:Event = null):void{
+				
+				this.currentState = (this._listeSlides.length > 0) ? STATE_LISTE_VISITE : STATE_ALERT_NOVISITE;
+			}
+			
+			
+			
+			
+			
+		]]>
+	</mx:Script>
+	
+	
+	
+</mx:VBox>

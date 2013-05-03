@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Form xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" creationPolicy="all" horizontalScrollPolicy="off" creationComplete="init()" verticalScrollPolicy="off" xmlns:ns1="elia.patients.view.*" xmlns:ns2="com.ataroa.eliamedical.patients.view.component.*" xmlns:ns3="com.ataroa.composants.*" xmlns:ns4="com.ataroa.ataroaGUI.*">
+	<mx:states>
+		<mx:State name="installation" >
+			<mx:SetProperty target="{formheading1}" name="label" value="Indiquez les données relatives à l'installation"/>
+			<mx:RemoveChild target="{btCancelNewVisite}"/>
+			<mx:SetProperty target="{btAddNewVisite}" name="label" value="Continuer"/>
+			<mx:SetProperty target="{champTypeVisite}" name="dataProvider" value="{this.dpInstallation}"/>
+			<mx:SetProperty target="{champTypeVisite}" name="editable" value="false"/>
+			<mx:SetProperty target="{champTypeVisite}" name="enabled" value="false"/>
+			<mx:SetProperty target="{champTypeVisite}" name="selectedIndex" value="0"/>
+			<mx:SetProperty target="{formitem6}" name="enabled" value="false"/>
+			<mx:SetProperty target="{formitem18}" name="enabled" value="false"/>
+			<mx:SetProperty target="{formitem11}" name="enabled" value="false"/>
+			<mx:SetProperty target="{formitem4}" name="enabled" value="false"/>
+			
+			
+		</mx:State>
+	</mx:states>
+
+
+<mx:Script>
+	<![CDATA[
+		import com.ataroa.events.AtaroaEvent;
+		import mx.collections.ArrayCollection;
+		import elia.masques.model.MasqueProxy;
+		import com.ataroa.ataroaGUI.PopUpChooser;
+		import elia.ApplicationFacade;
+		import com.ataroa.formatters.DateMysql;
+		import com.ataroa.eliamedical.patients.events.VisiteEvent;
+		
+		
+		
+		import com.ataroa.eliamedical.patients.model.vo.VisiteVO;
+		import com.ataroa.eliamedical.patients.model.vo.PatientVO;
+	
+		public static const EVENT_CANCEL_NEW_VISITE:String = "annuler la création";
+		public static const EVENT_ADD_NEW_VISITE:String = "ajouter la nouvelle visite";		
+		public static const EVENT_MAJ_VISITE:String = "mettre à jour la visite";	
+		
+		[Bindable] public static var listeMasques:ArrayCollection = new ArrayCollection();	
+		[Bindable] public static var listeMarques:ArrayCollection = new ArrayCollection();
+		
+		[Bindable] private var _visite:VisiteVO = new VisiteVO();
+		[Bindable] public var scriptUpload:String = "";
+		[Bindable] public var dateInstall:Date = new Date();
+		
+		public var idVisite:String = "";
+		
+		
+		
+		public var champAppareil:PopUpChooser = new PopUpChooser();
+		public var champMasque:PopUpChooser = new PopUpChooser();
+		
+		private var mysqlDateAdapter:DateMysql;
+		private var frenshDateAdapter:DateMysql;
+			
+			[Bindable] public var tableJours:Array = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+			[Bindable] public var tableMois:Array = ['Janvier', 'février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+			[Bindable] private var _patient:PatientVO;
+			[Bindable] private var _dateInstall:Date;
+			
+		
+			[Bindable] private var dpNewVisite:Array = ["", "Modification prescription","Visite systématique","Dépannage", "Oxymétrie nocturne", "Absence"];
+			[Bindable] private var dpInstallation:Array = ["Installation"];
+			
+			
+			private function init():void{
+				
+				this.mysqlDateAdapter = new DateMysql();
+           		this.mysqlDateAdapter.sens = DateMysql.FRENCH_TO_MYSQL;
+           		this.mysqlDateAdapter.separateur = "/";
+           		
+           		this.frenshDateAdapter = new DateMysql();
+           		this.frenshDateAdapter.sens = DateMysql.MYSQL_TO_FRENCH;
+           		this.frenshDateAdapter.separateur = "/";
+           		
+           		           		
+           	}
+           	
+       
+		
+		private function onAdd():void{
+			
+				visite.appareils = this.champAppareils.dataProvider;
+				visite.commentaire = this.champCommentaire.text;
+				visite.dateVisite = this.mysqlDateAdapter.format(this.champDateVisite.text);
+				visite.details = this.champDetails.text;
+				visite.lieuPrescription = this.champLieuPrescription.text;
+				visite.epworth = this.champEpworth.text;			
+				visite.fuiteMasque = this.champFuiteMasque.text;
+				visite.IAHResiduel = this.champIAHResiduel.text;
+				visite.P90 = this.champP90.text;
+				visite.idPatient = ""; 
+				visite.masque = this.champMasques.text;
+				visite.ns_masque = this.nsFieldMasque.text;
+				visite.observance = this.champObservance.fileName;
+				visite.observance_url = this.champObservance.url;
+				visite.oxymetrie = this.champOxymetrie.text;
+				visite.oxymetrieNocturne = this.champOxymetrieNocturne.fileName;
+				visite.oxymetrieNocturne_url = this.champOxymetrieNocturne.url;
+				visite.prescription = this.champPrescription.text;
+				visite.typeVisite = this.champTypeVisite.text;
+				
+				
+				var heure:String = (this.champUtilisationMoyenneHeure.text == '') ? '0' : this.champUtilisationMoyenneHeure.text;
+				var minute:String = (this.champUtilisationMinute.text == '') ? '0' : this.champUtilisationMinute.text;
+				visite.utilisationMoyenne = heure + "H" + minute;
+				
+				if( visite.utilisationMoyenne == '0H0' ) visite.utilisationMoyenne = '';
+				
+			
+			if(this.visite.id == "") {	
+				this.dispatchEvent( new VisiteEvent(EVENT_ADD_NEW_VISITE, visite, true) );
+			}else {
+				
+				this.dispatchEvent( new VisiteEvent(EVENT_MAJ_VISITE, visite, true) );
+			}
+			
+		}
+		
+	
+		public function get visite():VisiteVO{
+			
+			return this._visite;	
+			
+		}
+		
+		public function set visite(v:VisiteVO):void{
+			
+		
+			
+			this._visite = v;
+			
+			
+			
+			
+		}
+		
+		public function set patient( p:PatientVO ):void{
+			
+			
+			this._patient = p;
+			trace("SET PATIENT DATE INSTALL = " + this._patient.dateInstallation );
+			if(this._patient.dateInstallation) {
+				
+				var d:Array = this._patient.dateInstallation.split('-');
+				this._dateInstall = new Date( d[0], d[1]-1, d[2]);
+			}
+			
+						
+		}
+		
+		private function explodeTime(s:String):Array{
+				
+				if(!s || s == '') return new Array();
+
+				var reg:RegExp = /([0-9]*)[^0-9]*([0-9]*)/;
+				s = s.replace( reg, "$1H$2");
+				return s.split("H");
+				
+			}
+		
+		
+		public function resetForm():void{
+			
+			this.visite = new VisiteVO();
+			
+			this.visite.id = "";
+			
+			if(this.champCommentaire) {
+				
+				this.champAppareil.text = "";
+				this.champAppareils.delAllField();
+				this.champCommentaire.text = "";
+				this.champDateVisite.text = "";
+				this.champLieuPrescription.text = "";
+				this.champDateVisite.selectedDate = null;
+				this.champDetails.text = "";
+				this.champEpworth.text = "";			
+				this.champFuiteMasque.text = "";
+				this.champIAHResiduel.text = "";
+				this.champP90.text = "";
+				this.champMasque.text = "";
+				this.nsFieldMasque.text = "";
+				this.champObservance.fileName = "";
+				this.champOxymetrie.text = "";
+				this.champOxymetrieNocturne.fileName = "";
+				this.champPrescription.text = "";
+				this.champTypeVisite.selectedIndex = ( this.currentState == 'installation') ? 0:1;
+				this.champUtilisationMoyenneHeure.text = "";
+				this.champUtilisationMinute.text = "";
+				this.list_prescription.selectedItems = new Array();
+			}
+		}
+		
+		private function majPrescription():void{
+			
+			var s:String = "";
+			
+			for each( var p:String in this.list_prescription.selectedItems ){
+				
+				s += (s == "") ? "" :" + ";
+				s += p;	
+				
+			}
+			
+			this.champPrescription.text = s;
+			
+			
+			
+		}
+		
+		private function controlP90():void{
+			
+			var valueText:String = this.champP90.text;
+			var finalValue:String = valueText.replace( /[^0-9.,]/ , '');
+			var finalValue = valueText.replace( /,/ , '.');
+			if( Number( valueText ) > 25 ) finalValue = '25';
+			this.champP90.text = finalValue;			
+		
+		}
+		
+		private function controlSpO2():void{
+			
+			var valueText:String = this.champOxymetrie.text;
+			var finalValue:String = valueText.replace( /[^0-9]/ , '');
+			this.champOxymetrie.text = finalValue;			
+		
+		}
+		
+		
+	]]>
+</mx:Script>
+
+
+
+
+	<mx:FormHeading label="{( this._visite.id ) ? 'MODIFIER' : 'AJOUTER' } UNE VISITE" id="formheading1"/>
+	
+	<mx:HBox width="100%" creationPolicy="all">
+		
+		<mx:Form width="50%" backgroundColor="#F9F9F9" creationPolicy="all">
+			<mx:FormItem label="Date de visite" id="formitem0" width="100%" backgroundColor="#F9F9F9" fontWeight="bold" creationPolicy="all">
+				
+					<mx:DateField formatString="DD/MM/YYYY" monthNames="{tableMois}" firstDayOfWeek="1" dayNames="{tableJours}" width="100%" editable="true" id="champDateVisite"  textAlign="center" fontWeight="bold" selectedDate="{this.dateInstall}" text="{this.frenshDateAdapter.format(_visite.dateVisite)}"/>
+				
+			</mx:FormItem>
+			<mx:FormItem label="Type de visite" id="formitem1" width="100%" backgroundColor="#F9F9F9" fontWeight="bold">
+				<mx:HBox width="100%" height="100%">
+					
+					<mx:ComboBox  width="100%" fontWeight="normal" id="champTypeVisite" enabled="true" text="{this._visite.typeVisite}" selectedIndex="-1" dataProvider="{this.dpNewVisite}"  >
+					</mx:ComboBox>
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="Lieu de prescription" id="formitem2" width="100%" backgroundColor="#F9F9F9" fontWeight="bold">
+				<mx:HBox width="100%" height="100%">
+					<mx:TextInput width="100%" fontWeight="normal" editable="true" textAlign="center" id="champLieuPrescription" enabled="true" text="{this._visite.lieuPrescription}"/>
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="Prescription" id="formitem5" width="100%" backgroundColor="#F9F9F9" fontWeight="bold">
+				<mx:HBox width="100%" height="100%">
+					<mx:VBox width="100%" height="100%">
+						<mx:TextInput width="100%" fontWeight="normal" editable="true" textAlign="center" id="champPrescription" enabled="false" text="{this._visite.prescription}"/>
+						<mx:List id="list_prescription" allowMultipleSelection="true" itemClick="majPrescription()" width="100%" textAlign="center" fontSize="11" fontWeight="normal" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" height="125">
+							
+							<mx:dataProvider>
+								<mx:Array><mx:String>PPC</mx:String>
+									<mx:String>O2 Liquide</mx:String>
+									<mx:String>O2 Concentrateur</mx:String>
+									<mx:String>VNI</mx:String>
+									<mx:String>Aerosol</mx:String>
+									<mx:String>aspirateur de mucosites</mx:String></mx:Array>
+							</mx:dataProvider>
+						
+						</mx:List>
+					</mx:VBox>
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem id="appareilChooserContainer0" label="Appareils :" fontWeight="bold" width="100%" creationPolicy="all">
+				<ns2:ChampMultiAppareils width="100%" id="champAppareils" dataProvider="{this._visite.appareils}">
+				</ns2:ChampMultiAppareils>
+			</mx:FormItem>
+			<mx:FormItem label="Masque :" fontWeight="bold" width="100%" creationPolicy="all" id="masqueChooserContainer">
+				<mx:HBox width="100%">
+					<ns4:PopUpChooser id="champMasques" width="100%" text="{this._visite.masque}" creationComplete="{ this.dispatchEvent( new AtaroaEvent( 'champ masque ready', this.champMasques ) ) }" >
+					</ns4:PopUpChooser>
+					<mx:TextInput id="nsFieldMasque" text="{this._visite.ns_masque}" width="100"/>
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="Réglage" id="formitem10" width="100%" backgroundColor="#F9F9F9" fontWeight="bold">
+				<mx:HBox width="100%" height="100%">
+					<mx:TextInput width="100%" fontWeight="normal" editable="true" textAlign="center" id="champDetails" enabled="true" text="{this._visite.details}"/>
+				</mx:HBox>
+			</mx:FormItem>
+			
+		</mx:Form>
+		
+		<mx:Form width="50%" backgroundColor="#F9F9F9">
+			<mx:FormItem label="IAH résiduel" id="formitem6" width="100%" backgroundColor="#F9F9F9" fontWeight="bold" enabled="true">
+				<mx:HBox width="100%" height="100%">
+					<mx:TextInput width="100%" fontWeight="normal" textAlign="center" id="champIAHResiduel" text="{this._visite.IAHResiduel}"/>
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="P90" width="100%" backgroundColor="#F9F9F9" fontWeight="bold" enabled="true" id="formitem18">
+				<mx:HBox width="100%" height="100%">
+					<mx:TextInput width="100%" fontWeight="normal" textAlign="center" id="champP90" text="{this._visite.P90}" change="controlP90()"/>
+				</mx:HBox>
+			</mx:FormItem>
+			
+			<mx:FormItem label="Utilisation moyenne" id="formitem11" width="100%" backgroundColor="#F9F9F9" fontWeight="bold" enabled="true">
+				<mx:HBox width="100%" height="100%">
+					<mx:HBox width="100%" verticalAlign="middle">
+						<mx:TextInput id="champUtilisationMoyenneHeure" text="{this.explodeTime(_visite.utilisationMoyenne)[0]}" width="100%"/>
+						
+						<mx:Label text="H" fontWeight="normal"/>
+						<mx:TextInput id="champUtilisationMinute" text="{this.explodeTime(_visite.utilisationMoyenne)[1]}" width="100%"/>
+						
+						
+						<mx:Label text="Min" fontWeight="normal"/>
+					</mx:HBox>
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="Fuite au masque" id="formitem4" width="100%" backgroundColor="#F9F9F9" fontWeight="bold" enabled="true">
+				<mx:HBox width="100%" height="100%">
+					<mx:TextInput width="100%" fontWeight="normal" textAlign="center" id="champFuiteMasque" text="{this._visite.fuiteMasque}"/>
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="EPWORTH" id="formitem3" width="100%" backgroundColor="#F9F9F9" fontWeight="bold">
+				<mx:HBox width="100%" height="100%">
+					<mx:TextInput width="100%" fontWeight="normal" editable="true" textAlign="center" id="champEpworth" enabled="true" text="{this._visite.epworth}"/>
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="SpO2" id="formitem7" width="100%" backgroundColor="#F9F9F9" fontWeight="bold">
+				<mx:HBox width="100%" height="100%">
+					<mx:TextInput width="100%" fontWeight="normal" editable="true" textAlign="center" id="champOxymetrie" enabled="true" text="{this._visite.oxymetrie}" />
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="Observance" id="formitem12" width="100%" backgroundColor="#F9F9F9" fontWeight="bold">
+			    <mx:HBox width="100%" height="100%">
+			    	<ns2:ChampFichierJoint id="champObservance" scriptUpload="{ApplicationFacade.SCRIPT_UPLOAD}" mysqlField="observance" fileName="{this._visite.observance}" url="{this._visite.observance_url}"  width="100%" >
+			    	</ns2:ChampFichierJoint>
+			    </mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="Oxymétrie nocturne" id="formitem13" width="100%" backgroundColor="#F9F9F9" fontWeight="bold">
+			    <mx:HBox width="100%" height="100%">
+			    	<ns2:ChampFichierJoint id="champOxymetrieNocturne" scriptUpload="{ApplicationFacade.SCRIPT_UPLOAD}" url="{this._visite.oxymetrieNocturne_url}" fileName="{this._visite.oxymetrieNocturne}" mysqlField="oxymetrieNocturne" width="100%">
+			    	</ns2:ChampFichierJoint>
+			    </mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="Commentaire" id="formitem17" width="100%" backgroundColor="#F9F9F9" fontWeight="bold" height="120">
+			    <mx:HBox width="100%" height="100%">
+			    	<mx:TextArea width="100%" height="100%" fontWeight="normal" editable="true" textAlign="left" id="champCommentaire" enabled="true" text="{this._visite.commentaire}"/>
+			    </mx:HBox>
+			</mx:FormItem>
+			
+		</mx:Form>
+		
+	</mx:HBox>
+	<mx:ControlBar width="100%" horizontalAlign="right" verticalAlign="middle">
+		<mx:Button label="Retour" id="btCancelNewVisite" click="{this.dispatchEvent( new Event(EVENT_CANCEL_NEW_VISITE,true) )}"/>
+		<mx:Button label="Valider" id="btAddNewVisite" click="{this.onAdd()}"/>
+		
+	</mx:ControlBar>
+	
+</mx:Form>

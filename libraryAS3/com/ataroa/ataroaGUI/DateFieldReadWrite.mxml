@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" creationPolicy="all">
+
+<mx:Script>
+	<![CDATA[
+		
+		private var _text:String;
+		private var _readOnly:Boolean;
+		
+		public function set text(t:String):void{
+			
+			this._text = t;
+			this.ch_readOnly.text = t;
+			this.ch_write.text = t;
+		}	
+		
+		public function get text():String{
+			
+			return this._text;
+			
+		}
+		
+		public function set readOnly(d:Boolean):void{
+			
+			this._readOnly = d;
+			this.currentState = ( d )? "readOnly" : "";
+			
+		}
+		
+		public function get readOnly():Boolean{
+			
+			return this._readOnly;
+		} 
+		
+		
+		private function synchroCh(e:Event):void{
+			
+			this._text = this.ch_write.text;
+			this.ch_readOnly.text = this.ch_write.text;
+			this.dispatchEvent(e);
+		}
+		
+		
+		public function set dayNames( d:Array):void{
+			
+			if(this.ch_write) this.ch_write.dayNames = d;
+			
+		}
+		
+		public function set monthNames( d:Array):void{
+			
+			if(this.ch_write) this.ch_write.monthNames = d;
+			
+		}
+		
+		public function set formatString( s:String):void{
+			
+			if(this.ch_write) this.ch_write.formatString = s;
+			
+		}
+		
+		public function set firstDayOfWeek( i:int):void{
+			
+			if(this.ch_write) this.ch_write.firstDayOfWeek = i;
+			
+		}
+		
+		
+	]]>
+</mx:Script>
+
+
+	<mx:states>
+		<mx:State name="readOnly">
+			<mx:RemoveChild target="{ch_write}"/>
+			<mx:AddChild position="lastChild" creationPolicy="all">
+				<mx:Label left="0" right="0" top="0" bottom="0" id="ch_readOnly"/>
+			</mx:AddChild>
+		</mx:State>
+	</mx:states>
+	<mx:DateField left="0" bottom="0" right="0" top="0" id="ch_write" change="synchroCh(event)" editable="true" formatString="DD/MM/YYYY" />
+	
+</mx:Canvas>

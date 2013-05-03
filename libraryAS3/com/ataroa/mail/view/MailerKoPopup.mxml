@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="500" height="300" backgroundColor="#FFFFFF">
+	<mx:VBox y="0" width="100%" height="100%" x="0" borderStyle="solid" borderColor="#7E7E7E">
+		<mx:HBox width="100%" height="30" verticalAlign="middle" paddingLeft="10" backgroundColor="#D2D2D2">
+			<mx:Label text="Information"/>
+		</mx:HBox>
+		<mx:HBox width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+			<mx:VBox width="50%" height="100%" verticalAlign="top" horizontalAlign="center">
+				<mx:Image source="@Embed(source='assets/error-big.png')"/>
+			</mx:VBox>
+			<mx:VBox width="100%" height="100%" verticalAlign="middle">
+				<mx:Label text="Une erreur s'est produite !" color="#B4000D" fontWeight="bold" fontSize="16" paddingTop="30"/>
+				<mx:HRule width="100%"/>
+				<mx:Text text="Suite à un problème technique, votre mail n'a pu être transmis à Elia Medical. &#xd;&#xd;&#xd;Toute l'équipe d'ELIA MEDICAL vous remercie pour votre confiance.&#xd;" width="100%" height="100%"/>
+			</mx:VBox>
+		</mx:HBox>
+		<mx:HBox width="100%" height="50" verticalAlign="middle" backgroundColor="#D2D2D2" horizontalAlign="right" paddingRight="10" paddingBottom="10" paddingTop="10" paddingLeft="10">
+			<mx:Button label="Fermer" id="btClose" click="dispatchEvent( new Event( 'close' ) )"/>
+		</mx:HBox>
+	</mx:VBox>
+	
+</mx:Canvas>

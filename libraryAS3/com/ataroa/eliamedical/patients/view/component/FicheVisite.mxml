@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" creationComplete="init()" xmlns:formatters="com.ataroa.formatters.*" width="200" currentState="editable" xmlns:ns1="com.ataroa.eliamedical.patients.view.*" borderStyle="none" borderThickness="3" xmlns:ns2="com.ataroa.eliamedical.patients.view.component.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.ataroa.core.ApplicationConstantes;
+			import elia.ApplicationFacade;
+			import mx.controls.Alert;
+			import com.ataroa.eliamedical.patients.events.VisiteEvent;
+			import com.ataroa.eliamedical.patients.model.vo.VisiteVO;
+			
+			[Bindable] private var _visite:VisiteVO = null;
+			private var mysqlDateAdapter:DateMysql;
+			
+			[Bindable] public var tableJours:Array = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+			[Bindable] public var tableMois:Array = ['Janvier', 'février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+		
+			public var _mode:String = "admin";
+			
+			private function init():void{
+				
+				this.mysqlDateAdapter = new DateMysql();
+           		this.mysqlDateAdapter.sens = DateMysql.FRENCH_TO_MYSQL;
+           		this.mysqlDateAdapter.separateur = "/";
+				
+			}
+			
+			public function set mode(m:String):void{
+				
+				this._mode = m;
+				switch(m){
+				
+					case 'medecin' :
+						this.bt_del.visible == false;
+						this.bt_valider == false;
+						this.ch_observance.currentState = "mini";
+						this.ch_observance.mode = "readOnly";
+						this.ch_oxymetrieNocturne.currentState = "mini";
+						this.ch_oxymetrieNocturne.mode = "readOnly";
+						
+					break;
+					
+					default :
+						this.bt_del.visible == false;
+						this.bt_valider == false;
+						this.ch_observance.currentState = "mini";
+						this.ch_observance.mode = "admin";
+						this.ch_oxymetrieNocturne.currentState = "mini";
+						this.ch_oxymetrieNocturne.mode = "admin";
+						
+					break;
+				
+				}
+			}
+			
+			
+			public function get visite():VisiteVO{
+				
+				return this._visite;
+			}
+			
+			public function set visite(v:VisiteVO):void{
+				
+				this._visite = v;
+				this.populateFiche();
+			}
+			
+			private function populateFiche():void{
+				
+				
+				trace("populateFiche");
+				trace("oldappareil = "+ this._visite.oldappareils);
+				trace("oldmasque = "+ this._visite.oldmasque);
+				
+				var s:String = "";
+				
+				if(this._visite.appareils){
+					for each (var app:Object in this._visite.appareils ){
+						
+						s += app["nom"];
+						if( app["sn"] != '' && app["sn"] != undefined) s += " (ns: " + app["sn"] + ")";
+						s += " + ";
+					}				
+					
+					this.ch_appareil.text = s.substr(0,-3);
+				}else{
+					this.ch_appareil.text = this._visite.oldappareils;
+				}
+				
+				this.ch_LieuPrescription.text = this._visite.lieuPrescription;
+				this.ch_commentaire.text = this._visite.commentaire;
+				this.ch_date.text = this.mysqlToFrenchFormatter.format(this._visite.dateVisite);
+				this.ch_details.text = this._visite.details;
+				this.ch_epworth.text = this._visite.epworth;
+				this.ch_fuite.text = this._visite.fuiteMasque;
+				this.ch_IAHresiduel.text = this._visite.IAHResiduel;
+				this.ch_P90.text = this._visite.P90;
+				this.ch_masque.text = ( this._visite.masque != '' ) ? this._visite.masque : this._visite.oldmasque;
+				this.ch_masque.text += (this._visite.ns_masque != '') ?  " (ns:"+this._visite.ns_masque+")" : '';
+				this.ch_observance.fileName = this._visite.observance;
+				this.ch_observance.url = this._visite.observance_url;
+				this.ch_observance.idVisite = this._visite.id;
+				this.ch_oxymetrieNocturne.fileName = this._visite.oxymetrieNocturne;
+				this.ch_oxymetrieNocturne.url = this._visite.oxymetrieNocturne_url;
+				this.ch_oxymetrieNocturne.idVisite = this._visite.id;
+				
+				this.ch_oxymetrie.text = this._visite.oxymetrie;
+				
+				this.ch_prescription.text = this._visite.prescription;
+				this.ch_type.text = this._visite.typeVisite;
+				
+				
+				this.ch_utilisationMoyenne.text = stringToTime(this._visite.utilisationMoyenne);
+				
+				if( this._visite.utilisationMoyenne == '') this.alerteUtilisationMoyenneImage.source = null;
+				else this.alerteUtilisationMoyenneImage.source = getAlertLevelUtilMoy( stringToTime(this._visite.utilisationMoyenne).split("H")[0] );
+				
+				this.bt_active.visible = (ApplicationFacade.connectedUser.id_profil == "3") ? false : true;
+				this.bt_active.selected = ( this._visite.active == "0") ? true : false;
+				this.bt_active.label = ( this._visite.active == "0") ? "Activer" : "Désactiver";
+			}
+			
+			private function validerVisite():void{
+				
+				var v:VisiteVO = new VisiteVO();
+				v.id = this._visite.id;
+				//v.appareil = this.ch_appareil.text;
+				v.commentaire = this.ch_commentaire.text;
+				v.dateVisite = this.mysqlDateAdapter.format(this.ch_date.text);
+				v.details = this.ch_details.text;
+				v.epworth = this.ch_epworth.text;
+				v.fuiteMasque = this.ch_fuite.text;
+				v.IAHResiduel = this.ch_IAHresiduel.text;
+				v.P90 = this.ch_P90.text;
+				v.masque = this.ch_masque.text;
+				v.observance = this.ch_observance.fileName;
+				v.observance_url = this.ch_observance.url;
+				v.oxymetrie = this.ch_oxymetrie.text;
+				v.prescription = this.ch_prescription.text;
+				v.typeVisite = this.ch_type.text;
+				v.lieuPrescription = this.ch_LieuPrescription.text;
+				v.utilisationMoyenne = this.ch_utilisationMoyenne.text;
+				
+				this._visite = v;
+				
+				this.dispatchEvent( new VisiteEvent(VisiteEvent.SAVE,this._visite,true,false) );
+				
+			}
+			
+			private function editerVisite():void{
+				
+				
+				this.dispatchEvent( new VisiteEvent(VisiteEvent.EVENT_EDITER_ELEMENT,this._visite, true) );
+				
+				
+			}
+			
+			private function annuler_modif():void{
+				
+				this.visite = this._visite;	
+			}
+			
+			private function supprimerVisite():void{
+				
+				
+				this.dispatchEvent( new VisiteEvent(VisiteEvent.EVENT_DELETE_ELEMENT,this._visite,true,false) );
+			}
+			
+			private function controlEpworth():void{
+				
+				if( int(ch_epworth.text) > 30 ) ch_epworth.text = "30";
+				
+			}
+			
+			private function toggleActif():void{
+				
+				
+				this._visite.active = (this._visite.active == "0") ? "1" : "0" ;
+				this.dispatchEvent( new VisiteEvent(VisiteEvent.SAVE,this._visite,true,false) );
+				
+			}
+			
+			private function stringToTime(s:String):String{
+				
+				
+				
+				var reg:RegExp = /([0-9]*)[^0-9]*([0-9]*)/;
+				
+				if( s == '' ) return '';
+				s = s.replace( reg, "$1H$2");
+				if( s.substr(0,1) == 'H' ) s = '0'+s;
+				
+				return s;			
+			}
+			
+			private function getAlertLevelUtilMoy(h:String):Object{
+				
+				if( h == '') return null;
+				
+				var heure:Number = Number(h);
+				
+				
+				if(heure < 1 ) return new ApplicationConstantes.SmileyRouge();
+				else if( heure < 3 ) return new ApplicationConstantes.SmileyOrange(); 
+				else return new ApplicationConstantes.SmileyVert();
+				
+				
+			}
+			
+		
+		]]>
+	</mx:Script>
+	<mx:Label x="10" y="10" text="Fiche présente !" id="label1"/>
+	
+	<formatters:DateMysql id="mysqlToFrenchFormatter" sens="{DateMysql.MYSQL_TO_FRENCH}" separateur="/" />
+	
+	<mx:states>
+		<mx:State name="editable">
+			<mx:AddChild position="lastChild" creationPolicy="all">
+				<mx:VBox left="0" right="0" top="0" bottom="0" paddingBottom="2" paddingLeft="2" paddingRight="2" paddingTop="2" creationPolicy="all">
+					<mx:TextInput width="100%" id="ch_date" enabled="false" fontWeight="bold"/>
+					<mx:TextInput width="100%" height="22" id="ch_type" enabled="false"/>
+					<mx:TextInput width="100%" height="22" id="ch_LieuPrescription" enabled="false"/>
+					<mx:TextInput width="100%" height="22" id="ch_prescription" enabled="false"/>
+					<mx:TextInput width="100%" height="22" id="ch_appareil" enabled="false" maxWidth="186" toolTip="{this.ch_appareil.text}"/>
+					<mx:TextInput width="100%" height="22" id="ch_masque" enabled="false" maxWidth="186" toolTip="{this.ch_masque.text}"/>
+					<mx:TextInput width="100%" height="22" id="ch_details" enabled="false"/>
+					<mx:TextInput width="100%" height="22" id="ch_IAHresiduel" enabled="false"/>
+					<mx:TextInput width="100%" height="22" id="ch_P90" enabled="false"/>
+					<mx:HBox width="100%" verticalAlign="middle">
+						<mx:Image width="16" height="16" id="alerteUtilisationMoyenneImage" scaleContent="true" />
+						<mx:TextInput width="100%" height="22" id="ch_utilisationMoyenne" enabled="false"/>
+					</mx:HBox>
+					<mx:TextInput width="100%" height="22" id="ch_fuite" enabled="false"/>
+					<mx:TextInput width="100%" height="22" id="ch_epworth" change="controlEpworth()" enabled="false"/>
+					<mx:HBox width="100%">
+						<mx:TextInput width="100%" height="22" id="ch_oxymetrie" enabled="false"/>
+					</mx:HBox>
+					<ns2:ChampFichierJoint width="100%" id="ch_observance" scriptUpload="{ApplicationFacade.SCRIPT_UPLOAD}" mysqlField="observance"></ns2:ChampFichierJoint>
+					<ns2:ChampFichierJoint width="100%" id="ch_oxymetrieNocturne" scriptUpload="{ApplicationFacade.SCRIPT_UPLOAD}" mysqlField="oxymetrieNocturne"></ns2:ChampFichierJoint>
+					<mx:TextArea width="100%" height="60" id="ch_commentaire" enabled="true" editable="false" backgroundColor="#DDDDDD"/>
+					<mx:HBox width="100%" horizontalAlign="right">
+						<mx:Button label="x" id="bt_del" click="supprimerVisite()"   toolTip="Supprimer la visite" visible="{(ApplicationFacade.connectedUser.id_profil == 2 || ApplicationFacade.connectedUser.id_profil == 5) ? true : false}" includeInLayout="{(ApplicationFacade.connectedUser.id_profil == 2 || ApplicationFacade.connectedUser.id_profil == 5) ? true : false}" width="30" height="20"/>
+						<mx:Button label="..." id="bt_valider" click="editerVisite()"  toolTip="Modifier la visite" visible="{(ApplicationFacade.connectedUser.id_profil == 2 || ApplicationFacade.connectedUser.id_profil == 5) ? true : false}" includeInLayout="{(ApplicationFacade.connectedUser.id_profil == 2 || ApplicationFacade.connectedUser.id_profil == 5) ? true : false}" height="20"/>
+						<mx:Button label="Désactiver" id="bt_active" click="toggleActif()" visible="{(ApplicationFacade.modeUser == ApplicationFacade.MODE_SECRETAIRE)?false:true}" toggle="true" selected="false" height="20"/>
+					</mx:HBox>
+				</mx:VBox>
+			</mx:AddChild>
+			<mx:SetProperty name="width" value="190"/>
+			<mx:RemoveChild target="{label1}"/>
+			<mx:SetProperty name="height" value="520"/>
+		</mx:State>
+	</mx:states>
+</mx:VBox>

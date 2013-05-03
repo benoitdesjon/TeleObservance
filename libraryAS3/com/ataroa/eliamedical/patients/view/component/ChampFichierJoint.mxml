@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" height="25" creationComplete="init()" creationPolicy="all"  horizontalGap="2" horizontalAlign="right">
+	<mx:states>
+		<mx:State name="progress">
+			<mx:RemoveChild target="{bt_add}"/>
+			<mx:RemoveChild target="{bt_delete}"/>
+			<mx:RemoveChild target="{champ_nomFichier}"/>
+			<mx:AddChild position="lastChild" creationPolicy="all">
+				<mx:ProgressBar width="100%" height="25" id="progressBar" labelPlacement="center" mode="manual"/>
+			</mx:AddChild>
+			<mx:RemoveChild target="{bt_voir}"/>
+			<mx:RemoveChild target="{bt_sauver}"/>
+		</mx:State>
+		<mx:State name="mini">
+			<mx:RemoveChild target="{bt_delete}"/>
+			<mx:RemoveChild target="{bt_add}"/>
+			<mx:SetStyle name="horizontalAlign" value="right"/>
+			<mx:SetStyle target="{bt_sauver}" name="icon"/>
+			<mx:SetProperty target="{bt_sauver}" name="width"/>
+			<mx:SetProperty target="{bt_voir}" name="width"/>
+			<mx:SetStyle target="{bt_voir}" name="icon"/>
+		</mx:State>
+	</mx:states>
+	
+	<mx:Script>
+		<![CDATA[
+			import elia.ApplicationFacade;
+			import com.ataroa.core.ApplicationConstantes;
+
+			import mx.rpc.events.FaultEvent;
+			import mx.controls.Alert;
+			
+			
+			public static const EVENT_DELETE_FILE:String = "supprimer le fichier joint";
+			public static const EVENT_UPLOAD_COMPLETE_FILE:String = "fichier joint uploadé";
+			
+			private var fr:FileReference = new FileReference();
+			private var downloader:FileReference = new FileReference();
+			
+			
+			[Bindable] public var idVisite:String;
+			[Bindable] public var mysqlField:String;
+			[Bindable] public var url:String;
+			[Bindable] public var mode:String;
+			[Bindable] public var mini:Boolean = false;
+			[Bindable] public var scriptUpload:String = "";
+			
+			private var timestamp:Number;
+			
+			private var _filename:String = "";
+			
+			private function init():void{
+				
+				
+				
+							
+				fr = new FileReference();
+				fr.addEventListener(Event.SELECT, onSelectDoc);
+				fr.addEventListener(Event.COMPLETE, onUploadComplete);
+				fr.addEventListener(FaultEvent.FAULT, onFault);
+				fr.addEventListener(ProgressEvent.PROGRESS,progressHandler);
+				fr.addEventListener(IOErrorEvent.IO_ERROR,errorIO);
+				fr.addEventListener(Event.CANCEL,onCancelTransfert);
+				fr.addEventListener(SecurityErrorEvent.SECURITY_ERROR,errorSecu);
+	
+				
+				
+				downloader = new FileReference();
+				downloader.addEventListener(Event.COMPLETE, onDownloadComplete);
+				downloader.addEventListener(ProgressEvent.PROGRESS,progressHandler);
+				downloader.addEventListener(IOErrorEvent.IO_ERROR,errorIO);
+				downloader.addEventListener(Event.CANCEL,onCancelTransfert);
+				downloader.addEventListener(SecurityErrorEvent.SECURITY_ERROR,errorSecu);
+				
+				this.bt_add.addEventListener(MouseEvent.CLICK,openFileSelector);
+				this.bt_delete.addEventListener(MouseEvent.CLICK,deleteFile);
+				
+				if(this.mini) this.currentState = "mini";
+				this.displayControlerElement();
+				
+				
+			}
+			
+			
+			public function get fileName():String{
+				
+				return this._filename;
+				//return this.champ_nomFichier.text;
+				
+			}
+			
+			public function set fileName(s:String):void{
+				
+				this._filename = s;
+				//this.champ_nomFichier.text = s;
+				this.displayControlerElement();
+			}
+			
+			
+			
+			private function errorIO(e:IOErrorEvent):void{
+				
+				this.champ_nomFichier.text = "erreur"
+				this.displayControlerElement();
+				
+			}
+			
+			private function errorSecu(e:SecurityErrorEvent):void{
+				
+				this.champ_nomFichier.text = "erreur"
+				this.displayControlerElement();
+			}
+			
+			private function onFault(e:FaultEvent):void{
+				
+				this.champ_nomFichier.text = "erreur"
+				this.displayControlerElement();
+				
+			}
+			
+			private function deleteFile(e:MouseEvent):void{
+				
+				this.fileName = "";
+				
+			}
+			
+			private function displayControlerElement():void{
+			
+				
+				
+				if(this.fileName){
+					
+					
+					if(this.fileName != "") {
+						
+						if(this.contains(this.bt_add) && !mini) this.removeChild(this.bt_add); 
+						//if(!this.contains(this.img_icone) && !mini) this.addChildAt(this.img_icone,0);
+						if(!this.contains(this.bt_voir)) this.addChild(this.bt_voir);
+						if(!this.contains(this.bt_sauver)) this.addChild(this.bt_sauver);
+						if(!this.contains(this.bt_delete) && !mini && this.mode != "readOnly") this.addChild(this.bt_delete);
+					}else{
+						
+						if(!this.contains(this.bt_add) && !mini  && this.mode !="readOnly") this.addChild(this.bt_add); 
+						//if(this.contains(this.img_icone) && !mini) this.removeChild(this.img_icone);
+						if(this.contains(this.bt_delete) && !mini) this.removeChild(this.bt_delete);
+						if(this.contains(this.bt_sauver)) this.removeChild(this.bt_sauver);
+						if(this.contains(this.bt_voir)) this.removeChild(this.bt_voir);
+						
+					}
+				}
+				else{
+						
+						if(!this.contains(this.bt_add) && !mini  && this.mode !="readOnly") this.addChild(this.bt_add); 
+						if(this.contains(this.bt_delete) && !mini) this.removeChild(this.bt_delete);
+						if(this.contains(this.bt_sauver)) this.removeChild(this.bt_sauver);
+						if(this.contains(this.bt_voir)) this.removeChild(this.bt_voir);
+					
+				}
+				
+				
+				if(this.mode == "readOnly"){
+					
+					if(this.contains(this.bt_add)) this.removeChild(this.bt_add); 
+					if(this.contains(this.bt_delete)) this.removeChild(this.bt_delete);
+					
+					
+				}
+				
+			}
+			
+			
+			private function openFileSelector(e:MouseEvent):void{
+				
+				this.fr.browse();
+				
+			}
+			
+			private function onSelectDoc(e:Event):void{
+				
+				
+				
+				var request:URLRequest = new URLRequest(this.scriptUpload);
+				var variables:URLVariables = new URLVariables();
+				variables.type = this.mysqlField;
+				variables.idVisite = this.idVisite;
+				variables.timestamp = this.timestamp = new Date().time;
+				request.data = variables;
+				request.method = "POST";
+				this.currentState = "progress";
+				fr.upload(request);
+				
+			}
+			
+			private function onUploadComplete(e:Event):void{
+				
+				this.currentState = (mini)?"mini":"";
+				this.displayControlerElement();
+				this.fileName = this.timestamp+ "_" + fr.name;
+				this.url = ApplicationFacade.URLSITE + "documents/" + fileName
+				
+				
+				this.dispatchEvent( new Event( this.mysqlField+ " uploadComplete", true,true ) );
+				
+				
+				
+				
+			}
+			
+			private function onCancelTransfert(e:Event):void{
+				
+				this.currentState = (mini)?"mini":"";
+				this.displayControlerElement();
+				this.fileName = this.fileName;
+				
+				
+			}
+			
+			private function progressHandler(event:ProgressEvent):void
+    		{
+        		//Alert.show(event.bytesLoaded.toString() +" / "+ event.bytesTotal.toString());
+        		this.progressBar.setProgress(event.bytesLoaded, event.bytesTotal);
+    		}
+    		
+    		//SHOW FILE
+    		private function showFile(e:Event = null):void{
+    		
+    		
+    			navigateToURL(new URLRequest(this.url),"_blank");
+    		
+    		}
+    		
+    		//DOWNLOAD FILE
+
+			private function download(event:Event = null):void
+	    	{
+	    		
+	    		this.currentState = "progress";
+	    		this.downloader.download(new URLRequest(this.url),this.fileName);
+	    	}
+	    	
+	    	
+	    	private function onDownloadComplete(e:Event):void{
+				
+				this.currentState = (mini)?"mini":"";
+				this.fileName = fr.name;
+				
+				
+			}
+	    	
+			
+			
+	    	
+	    	
+			
+		]]>
+	</mx:Script>
+	<mx:Label width="100%" height="100%" fontFamily="Arial" fontSize="14" textAlign="left" paddingTop="2" paddingLeft="4" id="champ_nomFichier" enabled="false" truncateToFit="true"/>
+	<mx:Button label="Ajouter" width="25" height="25" id="bt_add" icon="@Embed(source='icones/pj.gif')" borderColor="#FFFFFF" cornerRadius="0"/>
+	<mx:Button label="Voir" id="bt_voir" height="25" click="showFile()" icon="@Embed(source='icones/voir.gif')" width="25" cornerRadius="0"/>
+	<mx:Button label="Sauvegarder" id="bt_sauver" height="25" click="download()" width="25" icon="@Embed(source='icones/sauver.gif')" cornerRadius="0"/>
+	<mx:Button label="Supprimer" width="25" height="25" id="bt_delete" click="{this.dispatchEvent( new Event(EVENT_DELETE_FILE,true))}" icon="@Embed(source='icones/delete.gif')" cornerRadius="0"/>
+	
+</mx:HBox>

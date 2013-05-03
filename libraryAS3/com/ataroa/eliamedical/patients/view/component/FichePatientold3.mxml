@@ -1,0 +1,610 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="1000" height="600" backgroundAlpha="0.0" horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:ns1="com.ataroa.remoteFile.*">
+
+	<mx:Script>
+		<![CDATA[
+			
+			
+			
+			import mx.controls.Alert;
+			import com.ataroa.eliamedical.patients.model.vo.PatientVO;
+			import com.ataroa.eliamedical.patients.model.vo.VisiteVO;
+			
+			import com.ataroa.helper.DateHelper;
+			
+			private const VISITE_LINE_HEIGHT:int = 25;
+			
+			[Bindable] private var dataProvider:PatientVO = null;
+			
+			private var currentVisitesPage:int = 1;
+			
+			[Embed(source="../assets/img/sauver.gif")]
+			[Bindable]
+			public var imgSave:Class;
+			
+			[Embed(source="../assets/img/voir.gif")]
+			[Bindable]
+			public var imgVoir:Class;
+
+			
+			
+			public function get patient():PatientVO{
+				
+				return this.dataProvider;
+			}
+			
+			public function set patient(patient:PatientVO):void{
+				
+				
+				this.dataProvider = patient;
+				this.btPreviousVisites.visible = false;
+				this.btNextVisites.visible = (patient.visites.length > 4)? true : false;
+				
+			}
+			
+			private function getObservanceVisible():Boolean{
+				
+				
+				if(!this.dataProvider.visites[0].observance_url && !this.dataProvider.oldObservance.url) return false
+				else return true;
+				
+			}
+			
+			private function showNextVisites():void{
+				
+				this.visiteViewStack.selectedIndex++;
+				this.currentVisitesPage++;
+				if(this.currentVisitesPage > 1) this.btPreviousVisites.visible = true;
+				this.btNextVisites.visible = (this.dataProvider.visites.length > 4*this.currentVisitesPage)?true:false;
+			}
+			
+			private function showPreviousVisites():void{
+				
+				this.visiteViewStack.selectedIndex--;
+				this.currentVisitesPage--;
+				
+				if(this.currentVisitesPage < 1) this.currentVisitesPage =1;
+				
+				if(this.currentVisitesPage == 1) this.btPreviousVisites.visible = false;
+				this.btNextVisites.visible = (this.dataProvider.visites.length > 4*this.currentVisitesPage)?true:false;
+				
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Grid left="0" right="0" top="0" bottom="0">
+		<mx:GridRow width="100%" height="20">
+			<mx:GridItem width="100%" height="20">
+				<mx:Label text="Nom prénom" width="100%" height="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="20">
+				<mx:Label text="Date de naissance" width="100%" height="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="20">
+				<mx:Label text="Adresse" width="100%" height="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="20">
+				<mx:Label text="Téléphone" width="100%" height="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="70">
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextArea width="100%" height="100%" backgroundColor="#EFEFEF" text="{(this.dataProvider.civilite)?this.dataProvider.civilite:''} {this.dataProvider.nom} {this.dataProvider.prenom}" id="champNom" fontWeight="bold"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextArea width="100%" height="100%" backgroundColor="#EFEFEF" text="{DateHelper.mysqlToFrench(this.dataProvider.naissance)}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextArea width="100%" height="100%" backgroundColor="#EFEFEF" text="{this.dataProvider.adresse}&#xd;{this.dataProvider.code_postal}&#xd;{this.dataProvider.ville}&#xd;"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextArea width="100%" height="100%" backgroundColor="#EFEFEF" text="tél 1 : {this.dataProvider.telephone}&#xd;tél 2 : {this.dataProvider.telephone2}">
+					
+				</mx:TextArea>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="20">
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label text="Prescription en cours : PPC" width="100%" height="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label text="Installation :" width="100%" height="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label text="DEP valable jusqu'au :" width="100%" height="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:Label text="Prochaine visite :" width="100%" height="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="70">
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextArea width="100%" height="100%" backgroundColor="#EFEFEF" text="{(this.dataProvider.visites.length > 0)? this.dataProvider.visites[0].prescription : this.dataProvider.oldPrescription.ppc}">
+					
+				</mx:TextArea>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextArea width="100%" height="100%" backgroundColor="#EFEFEF" text="{DateHelper.mysqlToFrench(this.dataProvider.dateInstallation)}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextArea width="100%" height="100%" backgroundColor="#EFEFEF" text="{DateHelper.mysqlToFrench(this.dataProvider.dateFinDEP)}"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:TextArea width="100%" height="100%" backgroundColor="#EFEFEF" text="{this.dataProvider.dateProchaineVisite}"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="20" backgroundColor="#E5E5E5">
+			<mx:GridItem width="100%" height="100%">
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+				<mx:LinkButton label="&lt; Visites précédentes" id="btPreviousVisites" click="showPreviousVisites()"/>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%">
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" horizontalAlign="right">
+				<mx:LinkButton label="Visites suivantes &gt;" id="btNextVisites" click="showNextVisites()"/>
+			</mx:GridItem>
+		</mx:GridRow>
+		<mx:GridRow width="100%" height="100%">
+			<mx:GridItem width="100%" height="100%">
+				<mx:Grid width="100%" height="100%" verticalGap="2" horizontalGap="2">
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" minHeight="{this.VISITE_LINE_HEIGHT}" creationPolicy="all" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Date de visite" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}" minHeight="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Type de visite" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Prescription" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Détail" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Appareil" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Masque" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Utilisation moyenne" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="IAH résiduel" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Fuites" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Score Epworth" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Observance" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Oxymétrie nocturne" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+						<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F3F3F3" horizontalAlign="left" verticalAlign="middle">
+							<mx:Label text="Commentaires" width="100%" fontFamily="Verdana" fontWeight="bold" fontSize="10"/>
+						</mx:GridItem>
+					</mx:GridRow>
+				</mx:Grid>
+			</mx:GridItem>
+			<mx:GridItem width="100%" height="100%" colSpan="3">
+				<mx:ViewStack id="visiteViewStack" width="100%" height="100%">
+					<mx:Canvas label="View 1" width="100%" height="100%">
+						<mx:Grid left="0" top="0" bottom="0" right="0" horizontalGap="2" verticalGap="2">
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<mx:Text text="{(this.dataProvider.haveVisites)? DateHelper.mysqlToFrench(this.dataProvider.visites[0].dateVisite) : DateHelper.mysqlToFrench(this.dataProvider.oldPrescription.derniere_visite)}" width="100%" height="100%"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<mx:Text text="{this.dataProvider.visites[1].dateVisite}" width="100%" height="100%"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<mx:Text text="{this.dataProvider.visites[2].dateVisite}" width="100%" height="100%"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<mx:Text text="{this.dataProvider.visites[3].dateVisite}" width="100%" height="100%"/>
+								</mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[0].typeVisite : VisiteVO.DEFAULT_TYPE}" width="100%" height="100%"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<mx:Text text="{this.dataProvider.visites[1].typeVisite}" width="100%" height="100%"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<mx:Text text="{this.dataProvider.visites[2].typeVisite}" width="100%" height="100%"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+								<mx:Text text="{this.dataProvider.visites[3].typeVisite}" width="100%" height="100%"/>
+								</mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[0].prescription : this.dataProvider.oldPrescription.ppc}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[1].prescription}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].prescription}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].prescription}" width="100%" height="100%"/></mx:GridItem>
+							</mx:GridRow>
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[0].details : 'aucun détails'}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[1].details}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].details}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].details}" width="100%" height="100%"/></mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[0].appareil : this.dataProvider.oldPrescription.appareil}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[1].appareil}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].appareil}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].appareil}" width="100%" height="100%"/></mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[0].masque : this.dataProvider.oldPrescription.masque}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[1].masque}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].masque}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].masque}" width="100%" height="100%"/></mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[0].utilisationMoyenne : this.dataProvider.oldPrescription.utilisation_moyenne}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[1].utilisationMoyenne}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].utilisationMoyenne}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].utilisationMoyenne}" width="100%" height="100%"/></mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[0].IAHResiduel : ''}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[1].IAHResiduel}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].IAHResiduel}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].IAHResiduel}" width="100%" height="100%"/></mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[0].fuiteMasque : ''}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[1].fuiteMasque}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].fuiteMasque}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].fuiteMasque}" width="100%" height="100%"/></mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[0].epworth : this.dataProvider.oldPrescription.epworth}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[1].epworth}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].epworth}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].epworth}" width="100%" height="100%"/></mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<ns1:downlodableFileIcone url="{(this.dataProvider.haveVisites)? this.dataProvider.visites[0].observance_url : this.dataProvider.oldObservance.url}" visible="{getObservanceVisible()}" source="{imgSave}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[0].observance_url}" source="{(this.dataProvider.visites[0].observance_url !='')?imgVoir:null}"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<ns1:downlodableFileIcone url="{this.dataProvider.visites[1].observance_url}" source="{(this.dataProvider.visites[1].observance_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[1].observance_url}" source="{(this.dataProvider.visites[1].observance_url !='')?imgVoir:null}"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<ns1:downlodableFileIcone url="{this.dataProvider.visites[2].observance_url}" source="{(this.dataProvider.visites[2].observance_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[2].observance_url}" source="{(this.dataProvider.visites[2].observance_url !='')?imgVoir:null}"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<ns1:downlodableFileIcone url="{this.dataProvider.visites[3].observance_url}" source="{(this.dataProvider.visites[3].observance_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[3].observance_url}" source="{(this.dataProvider.visites[3].observance_url !='')?imgVoir:null}"/>
+								</mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<ns1:downlodableFileIcone url="{this.dataProvider.visites[0].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[0].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[0].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[0].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<ns1:downlodableFileIcone url="{this.dataProvider.visites[1].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[1].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[1].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[1].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<ns1:downlodableFileIcone url="{this.dataProvider.visites[2].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[2].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[2].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[2].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+								</mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<ns1:downlodableFileIcone url="{this.dataProvider.visites[3].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[3].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[3].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[3].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+								</mx:GridItem>
+							</mx:GridRow>
+							
+							<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[0].commentaire}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[1].commentaire}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].commentaire}" width="100%" height="100%"/></mx:GridItem>
+								<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].commentaire}" width="100%" height="100%"/></mx:GridItem>
+							</mx:GridRow>
+							
+						</mx:Grid>
+					</mx:Canvas>
+					<mx:Canvas label="visites2" width="100%" height="100%">
+						<mx:Canvas label="View 1" width="100%" height="100%">
+							<mx:Grid left="0" top="0" bottom="0" right="0" horizontalGap="2" verticalGap="2">
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[4].dateVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[5].dateVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[6].dateVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[7].dateVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[4].typeVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[5].typeVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[6].typeVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<mx:Text text="{this.dataProvider.visites[7].typeVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[4].prescription : this.dataProvider.oldPrescription.ppc}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[5].prescription}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].prescription}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].prescription}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[4].details : 'aucun détails'}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[5].details}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].details}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].details}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[4].appareil : this.dataProvider.oldPrescription.appareil}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[5].appareil}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].appareil}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].appareil}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[4].masque : this.dataProvider.oldPrescription.masque}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[5].masque}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].masque}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].masque}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[4].utilisationMoyenne : this.dataProvider.oldPrescription.utilisation_moyenne}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[5].utilisationMoyenne}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].utilisationMoyenne}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].utilisationMoyenne}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[4].IAHResiduel : ''}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[5].IAHResiduel}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].IAHResiduel}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].IAHResiduel}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[4].fuiteMasque : ''}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[5].fuiteMasque}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].fuiteMasque}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].fuiteMasque}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[4].epworth : this.dataProvider.oldPrescription.epworth}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[5].epworth}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[2].epworth}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[3].epworth}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{(this.dataProvider.haveVisites)? this.dataProvider.visites[4].observance_url : this.dataProvider.oldObservance.url}" visible="{getObservanceVisible()}" source="{imgSave}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[4].observance_url}" source="{(this.dataProvider.visites[4].observance_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[5].observance_url}" source="{(this.dataProvider.visites[5].observance_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[5].observance_url}" source="{(this.dataProvider.visites[5].observance_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[2].observance_url}" source="{(this.dataProvider.visites[2].observance_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[2].observance_url}" source="{(this.dataProvider.visites[2].observance_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[3].observance_url}" source="{(this.dataProvider.visites[3].observance_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[3].observance_url}" source="{(this.dataProvider.visites[3].observance_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[4].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[4].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[4].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[4].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[5].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[5].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[5].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[5].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[6].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[6].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[6].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[6].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[7].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[7].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[7].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[7].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[4].commentaire}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[5].commentaire}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[6].commentaire}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[7].commentaire}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+							</mx:Grid>
+						</mx:Canvas>
+					</mx:Canvas>
+					<mx:Canvas label="visite3" width="100%" height="100%">
+						<mx:Canvas label="View 1" width="100%" height="100%">
+							<mx:Grid left="0" top="0" bottom="0" right="0" horizontalGap="2" verticalGap="2">
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{(this.dataProvider.haveVisites)? this.dataProvider.visites[8].dateVisite : this.dataProvider.oldPrescription.derniere_visite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[9].dateVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[10].dateVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[11].dateVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[8].typeVisite : VisiteVO.DEFAULT_TYPE}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[9].typeVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<mx:Text text="{this.dataProvider.visites[10].typeVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+									<mx:Text text="{this.dataProvider.visites[11].typeVisite}" width="100%" height="100%"/>
+									</mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[8].prescription : this.dataProvider.oldPrescription.ppc}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[9].prescription}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[10].prescription}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[11].prescription}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[8].details : 'aucun détails'}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[9].details}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[10].details}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[11].details}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[8].appareil : this.dataProvider.oldPrescription.appareil}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[9].appareil}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[10].appareil}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[11].appareil}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[8].masque : this.dataProvider.oldPrescription.masque}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[9].masque}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[10].masque}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[11].masque}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[8].utilisationMoyenne : this.dataProvider.oldPrescription.utilisation_moyenne}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[9].utilisationMoyenne}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[10].utilisationMoyenne}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[11].utilisationMoyenne}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[8].IAHResiduel : ''}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[9].IAHResiduel}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[10].IAHResiduel}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[11].IAHResiduel}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[8].fuiteMasque : ''}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[9].fuiteMasque}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[10].fuiteMasque}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[11].fuiteMasque}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{(this.dataProvider.haveVisites)?this.dataProvider.visites[8].epworth : this.dataProvider.oldPrescription.epworth}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[9].epworth}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[10].epworth}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[11].epworth}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{(this.dataProvider.haveVisites)? this.dataProvider.visites[8].observance_url : this.dataProvider.oldObservance.url}" visible="{getObservanceVisible()}" source="{imgSave}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[8].observance_url}" source="{(this.dataProvider.visites[8].observance_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[9].observance_url}" source="{(this.dataProvider.visites[9].observance_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[9].observance_url}" source="{(this.dataProvider.visites[9].observance_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[10].observance_url}" source="{(this.dataProvider.visites[10].observance_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[10].observance_url}" source="{(this.dataProvider.visites[10].observance_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[11].observance_url}" source="{(this.dataProvider.visites[11].observance_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[11].observance_url}" source="{(this.dataProvider.visites[11].observance_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[8].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[8].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[8].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[8].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[9].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[9].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[9].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[9].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[10].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[10].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[10].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[10].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8">
+										<ns1:downlodableFileIcone url="{this.dataProvider.visites[11].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[11].oxymetrieNocturne_url !='')?imgSave:null}"/><ns1:VisualisationFileIcone  url="{this.dataProvider.visites[11].oxymetrieNocturne_url}" source="{(this.dataProvider.visites[11].oxymetrieNocturne_url !='')?imgVoir:null}"/>
+									</mx:GridItem>
+								</mx:GridRow>
+								
+								<mx:GridRow width="100%" height="{this.VISITE_LINE_HEIGHT}">
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[8].commentaire}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[9].commentaire}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[10].commentaire}" width="100%" height="100%"/></mx:GridItem>
+									<mx:GridItem width="100%" height="{this.VISITE_LINE_HEIGHT}" backgroundColor="#F8F8F8"><mx:Text text="{this.dataProvider.visites[11].commentaire}" width="100%" height="100%"/></mx:GridItem>
+								</mx:GridRow>
+								
+							</mx:Grid>
+						</mx:Canvas>
+					</mx:Canvas>
+				</mx:ViewStack>
+			</mx:GridItem>
+			
+		</mx:GridRow>
+	</mx:Grid>
+
+	
+	
+</mx:Canvas>

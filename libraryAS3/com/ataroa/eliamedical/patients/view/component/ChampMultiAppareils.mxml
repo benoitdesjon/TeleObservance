@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" creationPolicy="all" creationComplete="this.makeFieldFromListe()">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.TextInput;
+			import com.ataroa.ataroaGUI.PopUpChooser;
+			import mx.core.UIComponent;
+			import mx.controls.Button;
+			import com.ataroa.events.AtaroaEvent;
+			import com.ataroa.ataroaGUI.PopUpChooser;
+			import mx.collections.ArrayCollection;
+			
+			private var _listeMateriels:Array;
+			
+			
+			public function addNewField( id:String = '' , nom:String = '', sn:String = ''):void{
+				
+				var hbox:HBox = new HBox();
+				hbox.creationPolicy = 'all';
+				hbox.width = this.width;
+				hbox.height = 24;
+				hbox.setStyle('verticalAlign','middle');
+				hbox.setStyle('horizontalAlign','left');
+				hbox.setStyle('backgroundColor','#FFFFFF');
+				
+				hbox.verticalScrollPolicy = 'off';
+				hbox.horizontalScrollPolicy = 'off';
+				var btdel:Button = new Button();
+				btdel.label = 'x';
+				btdel.width = btdel.height = 16;
+				btdel.setStyle('paddingBottom',0);
+				btdel.setStyle('paddingTop',0);
+				btdel.setStyle('paddingLeft',0);
+				btdel.setStyle('paddingRight',0);
+				btdel.setStyle('color','#ff0000');
+				btdel.setStyle('font-size',10);
+				btdel.setStyle('cornerRadius',0);
+				
+				
+				var f:PopUpChooser = new PopUpChooser();
+				f.width = hbox.width - btdel.width - 100 - 20;
+				
+				var si:Object = new Object();
+				si['id'] = id;
+				si['nom'] = nom;
+				si['sn'] = sn;
+				f.selectedItem = si;
+				
+				var snField:TextInput = new TextInput();
+				snField.width = 100;
+				snField.text = si['sn'];
+				
+				var datas:Array = new Array();
+				datas.push(f);
+				datas.push(snField);
+				hbox.data = datas;
+				hbox.addChild(f);
+				hbox.addChild( snField );
+				hbox.addChild(btdel);
+				
+				this.content.addChild(hbox);
+				
+				btdel.addEventListener(MouseEvent.CLICK, delHandler);
+				this.dispatchEvent( new AtaroaEvent( "new field appareil added" , f) );
+				
+			}	
+			
+			private function delHandler(e:Event):void{
+
+				if( this.content.contains(DisplayObject(e.target.parent)) ) {
+				
+					this.dispatchEvent( new AtaroaEvent( "del appareil field", e.target.parent.data ) );
+					this.content.removeChild( DisplayObject(e.target.parent) );
+				}
+				
+			}		
+			
+			public function delField( index:int ):void{
+				
+				
+				
+			}
+			
+			public function delAllField():void{
+				
+				if(!this.content) return;
+				for each( var c:HBox in this.content.getChildren() ) 
+				{
+					this.dispatchEvent( new AtaroaEvent( "del appareil field", c.data ) );
+					this.content.removeChild(c);
+					
+					
+				}
+				
+			}
+			
+			
+			public function set dataProvider( a:Array):void{
+				
+				
+				this._listeMateriels = a;
+				this.makeFieldFromListe();
+				
+			}
+			
+			public function makeFieldFromListe(e:Event = null):void{
+				
+				this.delAllField();
+				for each (var app:Object in this._listeMateriels ){
+				
+					this.addNewField(app['id'],app['nom'],app['sn']);
+				
+				}
+				
+			}
+			
+			
+			public function get dataProvider():Array{
+				
+				
+				var a:Array = new Array();
+				
+				for each( var c:HBox in this.content.getChildren() ) 
+				{
+					var p:Object = PopUpChooser(c.data[0]).selectedItem;
+					var ap:Array = new Array();
+					trace("selected Item : " + p.id + " " + p.nom + "sn: " + c.data[1].text);
+					ap["id"] = p.id;
+					ap["nom"] = p.nom;
+					ap["sn"] = c.data[1].text;
+					
+					a.push( ap );
+					
+				}
+				
+				
+				return a;
+			}
+			
+			
+			
+		]]>
+	</mx:Script>
+	<mx:HBox width="100%" id="chrome" horizontalAlign="right" paddingLeft="4" paddingRight="4" paddingTop="4" paddingBottom="4" backgroundColor="#989898" backgroundAlpha="0.2">
+		<mx:Label text="Ajouter le nombre d'appareils désiré :" fontWeight="bold"/>
+		<mx:Button label="+" cornerRadius="0" color="#4DA948" fontSize="10" click="addNewField()" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" width="16" height="16"/>
+	</mx:HBox>
+	<mx:VBox width="100%" height="100%" id="content" creationPolicy="all">
+	</mx:VBox>
+</mx:VBox>

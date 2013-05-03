@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="250" height="300" verticalGap="0" borderStyle="solid" borderColor="#464646">
+	<mx:states>
+		<mx:State name="loading">
+			<mx:RemoveChild target="{list2}"/>
+			<mx:AddChild position="lastChild">
+				<mx:HBox width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" horizontalGap="0" creationPolicy="all" backgroundColor="#858585">
+					<mx:Image source="@Embed(source='./loading1.swf')" autoLoad="true" alpha="1.0" scaleContent="true"/>
+				</mx:HBox>
+			</mx:AddChild>
+			<mx:RemoveChild target="{hbox1}"/>
+			<mx:AddChild position="lastChild" target="{hbox1}"/>
+			<mx:SetProperty target="{button1}" name="enabled" value="false"/>
+			<mx:SetProperty target="{button2}" name="enabled" value="false"/>
+			<mx:SetProperty target="{button3}" name="enabled" value="false"/>
+		</mx:State>
+		<mx:State name="add" exitState="{ this.champLibelle.text = '';}" enterState="{this.champLibelle.setFocus();}">
+			<mx:SetProperty target="{button3}" name="enabled" value="false"/>
+			<mx:SetProperty target="{button2}" name="enabled" value="false"/>
+			<mx:AddChild relativeTo="{hbox1}" position="before">
+				<mx:VBox width="100%" horizontalGap="0" verticalGap="0">
+					
+					
+					<mx:HBox width="100%" backgroundColor="#EAEAEA" verticalAlign="middle" paddingTop="10" paddingRight="4" paddingLeft="4" paddingBottom="4">
+						<mx:Label text="Entrer un nom et une marque" fontWeight="bold"/>
+					</mx:HBox>
+					<mx:ComboBox width="100%" prompt="toutes marques" cornerRadius="0" fontWeight="normal" color="#656565" id="champChoixMarques" labelField="nom"  dataProvider="{this._liste1}" />
+					<mx:HBox width="100%" verticalAlign="middle" paddingRight="8" id="hbox2" paddingLeft="4" paddingBottom="4" paddingTop="4">
+						
+						<mx:TextInput id="champLibelle" width="100%">
+						</mx:TextInput>
+						
+						<mx:Button label="&gt;" height="16" fontWeight="normal" width="16" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"  click="this.dispatchEvent( new AtaroaEvent ('ajouter' , {'marque':this.champChoixMarques.selectedItem.id, 'libelle':this.champLibelle.text} ) )" id="button0" >
+							<mx:enabled>{(this.champLibelle.text.replace(this.r,'$1') != '' &amp;&amp; this.champChoixMarques.selectedIndex != -1 ) ? true : false}</mx:enabled>
+						</mx:Button>
+						<mx:Button label="x" height="16" fontWeight="normal" width="16" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" click="this.currentState=''"  id="button4" />
+					</mx:HBox>
+				</mx:VBox>
+			</mx:AddChild>
+			<mx:SetProperty target="{list2}" name="enabled" value="false"/>
+		</mx:State>
+		<mx:State name="update" basedOn="add">
+			<mx:SetProperty target="{champLibelle}" name="text" value="{this.list2.selectedItem.nom}"/>
+			<mx:SetProperty target="{list2}" name="enabled" value="true"/>
+			<mx:RemoveChild target="{button0}"/>
+			<mx:AddChild relativeTo="{button4}" position="before">
+				<mx:Button label="&gt;" height="16" fontWeight="normal" width="16" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" id="button5" >
+					<mx:click><![CDATA[ this.dispatchEvent( new AtaroaEvent ('ajouter' , {'marque':this.champChoixMarques.selectedItem.id, 'id':this.list2.selectedItem.id , 'libelle':this.champLibelle.text} ) )]]></mx:click>
+				</mx:Button>
+			</mx:AddChild>
+		</mx:State>
+		<mx:State name="delConfirm">
+			<mx:AddChild relativeTo="{hbox1}" position="before">
+				<mx:HBox width="100%" backgroundColor="#EAEAEA" verticalAlign="middle" id="hbox0" paddingBottom="10" paddingLeft="4" paddingRight="4" paddingTop="10" horizontalGap="4">
+					<mx:Label text="Confirmez-vous la suppréssion ?" id="label0" fontWeight="bold" color="#FF0000" width="100%"/>
+					<mx:Button label="&gt;" height="16" fontWeight="normal" width="16" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"  click="this.dispatchEvent(new AtaroaEvent('supprimer' , this.list2.selectedItem.id))" id="button7"/>
+					<mx:Button label="x" height="16" fontWeight="normal" width="16" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" click="this.currentState = ''"   id="button6" />
+				</mx:HBox>
+			</mx:AddChild>
+			<mx:SetEventHandler target="{button3}" name="click"/>
+			<mx:SetProperty target="{button3}" name="enabled" value="false"/>
+			<mx:SetProperty target="{button1}" name="enabled" value="false"/>
+			<mx:SetProperty target="{button2}" name="enabled" value="false"/>
+			<mx:SetProperty target="{list2}" name="enabled" value="false"/>
+		</mx:State>
+	</mx:states>
+
+<mx:Script>
+	<![CDATA[
+		import com.ataroa.events.AtaroaEvent;
+		import mx.collections.ArrayCollection;
+		
+		[Bindable] private var _title:String = "Titre";
+		[Bindable] private var _liste1:ArrayCollection = new ArrayCollection();
+		[Bindable] private var _liste2:ArrayCollection = new ArrayCollection(); 
+		[Bindable] private var _labelField:String = "";
+		
+		private var r:RegExp = /^\s*(.*?)\s*$/g;
+		
+		
+		private function filtrer(item:Object):Boolean{
+			
+			if(this.champMarques.selectedIndex == -1 ) return true;
+			if( item.id_marque == this.champMarques.selectedItem.id ) return true;
+			
+			return false;
+		}
+		
+		public function set title(s:String):void{
+			
+			this._title = s;
+			
+		}
+		
+		public function set labelField(s:String):void{
+			
+			this._labelField = s;
+		}
+		
+				
+		public function set liste1(a:ArrayCollection):void{
+			
+			this._liste1 = a;
+			
+		}
+		
+		public function set liste2(a:ArrayCollection):void{
+			
+			this._liste2 = a;
+			this._liste2.filterFunction = filtrer;
+			this._liste2.refresh();
+		}		
+		
+	]]>
+</mx:Script>
+	<mx:HBox width="100%" backgroundColor="#E4E4E4" paddingTop="2" paddingRight="4" paddingLeft="10" paddingBottom="2">
+		<mx:Label id="titleLabel" text="{ this._title }" width="100%"/>
+		<mx:Button label="x" height="16" fontWeight="normal" width="16" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" click="this.dispatchEvent(new Event('close'))"/>
+	</mx:HBox>
+	<mx:ComboBox width="100%" prompt="toutes marques" cornerRadius="0" fontWeight="normal" color="#656565" id="champMarques" labelField="nom" change="this._liste2.refresh()" dataProvider="{this._liste1}"></mx:ComboBox>
+	<mx:List width="100%" height="100%" borderStyle="none" id="list2" dataProvider="{this._liste2}" labelField="{this._labelField}" ></mx:List>
+	<mx:HBox width="100%" backgroundColor="#E4E4E4" verticalAlign="middle" horizontalAlign="left" paddingTop="4" paddingRight="10" paddingLeft="10" paddingBottom="4" id="hbox1">
+		<mx:Button label="+" height="16" fontWeight="normal" width="16" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" click="this.list2.selectedIndex=-1;this.currentState='add'"   id="button1" />
+		<mx:Button label="..." height="16" fontWeight="normal" width="16" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"  click="this.currentState='update'" id="button2" enabled="{ (this.list2.selectedIndex == -1 ) ? false : true}"/>
+		<mx:Button label="-" height="16" fontWeight="normal" width="16" cornerRadius="0" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"  click="this.currentState='delConfirm'" id="button3" enabled="{ (this.list2.selectedIndex == -1 ) ? false : true}"/>
+	</mx:HBox>
+	
+</mx:VBox>

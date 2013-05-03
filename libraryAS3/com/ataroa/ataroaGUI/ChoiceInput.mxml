@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.ataroa.events.AtaroaEvent;
+			import elia.ApplicationFacade;
+			
+			public static const EVENT_CHOISIR:String = "EVENT_CHOISIR";
+			
+			[Bindable] public var liste:Array = new Array();
+			[Bindable] public var table:String = '';
+			[Bindable] public var champs:String = '';
+			
+			[Bindable] public var value:String = '0';
+			[Bindable] public var text:String = '';
+			[Bindable] public var prompt:String = "";
+			
+			[Bindable] public var restrictions:String = "";
+			[Bindable] public var userRestrictions:String = "";
+			[Bindable] public var liveRestrictions:String = "";
+			
+			private function choisir( limit:int = 0):void{
+				
+				
+				
+				this.listeItem.visible = this.listeItem.includeInLayout = true;
+				
+				this.text = this.textInput.text;
+				
+				liveRestrictions = this.restrictions;
+				
+				
+				if( ApplicationFacade.modeUser != ApplicationFacade.MODE_ADMINISTRATEUR_TOTAL && this.userRestrictions == 'id_agence' ){
+						
+						liveRestrictions += ( liveRestrictions != "") ? ' AND ' : '';
+						liveRestrictions += table +".id_agence='" + ApplicationFacade.connectedUser.id_agence  + "'";
+				}
+				
+				
+				// restriction propre à la recherche et sur les champs de la liste
+				var a:Array = this.champs.split(',');
+				var searchRestrictions:String = "";
+				
+				for each(var champ:String in a ){
+					
+					searchRestrictions += ( searchRestrictions != "") ? ' OR ' : '';
+					searchRestrictions += table + "." + champ + " LIKE '"+ this.text +"%'";
+				}
+				
+				if( a.length > 1 ) searchRestrictions = "( "+ searchRestrictions + " )";
+				liveRestrictions += ( liveRestrictions != "") ? ' AND ' : '';
+				
+				liveRestrictions +=  searchRestrictions;
+				
+				if( this.text.length >= limit  ) this.dispatchEvent( new AtaroaEvent( EVENT_CHOISIR, this ) );
+				
+			}
+			
+			override public function toString():String{
+				
+				var s:String  = "[ ChoiceInput ]";
+				return s;
+			}
+			
+			private function onSelect():void{
+				
+				this.value = this.listeItem.selectedItem.id;
+				this.text = this.listeItem.selectedItem[this.label];
+				this.listeItem.visible = this.listeItem.includeInLayout = false;
+				
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:HBox>
+		<mx:TextInput id="textInput" editable="true" text="{text}" change="choisir(3)" /><mx:Button width="20" height="20" label="..." click="choisir()" id="button1"/>
+	</mx:HBox>
+	<mx:List id="listeItem" dataProvider="{this.liste}" labelField="{this.label}" doubleClickEnabled="true" doubleClick="onSelect()"  width="100%" visible="false" includeInLayout="false"/>
+	
+		
+</mx:VBox>

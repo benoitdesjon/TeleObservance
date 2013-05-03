@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="600" height="500" backgroundAlpha="0.0">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.ataroa.eliamedical.patients.model.vo.PatientVO;
+			
+			[Bindable] private var dataProvider:PatientVO = null;
+			
+			
+			public function get patient():PatientVO{
+				
+				return this.dataProvider;
+			}
+			
+			public function set patient(patient:PatientVO):void{
+				
+				this.dataProvider = patient;
+				
+			}
+			
+			
+			
+			
+		]]>
+	</mx:Script>
+	<mx:Label x="10" y="10" text="{this.dataProvider.nom} {this.dataProvider.prenom}"/>
+	
+</mx:Canvas>
